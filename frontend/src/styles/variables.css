@@ -1,0 +1,24 @@
+:root {
+  /* Brand palette — exact hex values (design system) */
+  --color-rust: #ab4c35;
+  --color-rust-dark: #8b3d2f;
+  --color-rust-light: #c76a52;
+  --color-cream: #fedcbd;
+  --color-neutral: #dcddde;
+  --color-white: #ffffff;
+  --color-text-primary: #222222;
+  --color-text-secondary: #666666;
+
+  /* Spacing — 8px grid */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+
+  /* Motion */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-interaction: 0.3s;
+  --duration-entrance: 0.6s;
+}

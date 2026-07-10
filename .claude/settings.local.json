@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(node -e \"require\\('./routes/auth'\\);require\\('./routes/menuItems'\\);require\\('./routes/categories'\\);require\\('./routes/settings'\\);require\\('./controllers/authController'\\);console.log\\('all backend modules require OK'\\)\")",
+      "Bash(find . -path ./frontend/node_modules -prune -o -path ./backend/node_modules -prune -o -iname \"*logo*\" -print)",
+      "Bash(find . -type d -name \"assets\" -not -path \"*/node_modules/*\")",
+      "Bash(ls -R frontend/assets)",
+      "Bash(ls -R assets)",
+      "Bash(ls -R frontend/public)",
+      "Bash(python3 -)",
+      "Bash(mkdir -p public/images)",
+      "Bash(cp assets/images/mio_logo_cream.png assets/images/mio_logo_rust.png public/images/)",
+      "Bash(python3 -c ' *)",
+      "Bash(command -v ffmpeg)",
+      "Bash(ffmpeg -version)",
+      "Bash(command -v blender)",
+      "Read(//Users/adarshs/Desktop/**)",
+      "Bash(npx next *)"
+    ]
+  }
+}
