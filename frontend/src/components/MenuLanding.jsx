@@ -37,6 +37,26 @@ export default function MenuLanding() {
           sizes="100vw"
           unoptimized
         />
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 md:p-4">
+          <Image
+            src="/documents/menu-breakfast-1.jpg"
+            alt="MIO breakfast menu"
+            width={2304}
+            height={3456}
+            className="block h-auto w-full"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized
+          />
+          <Image
+            src="/documents/menu-breakfast-2.jpg"
+            alt="MIO breakfast menu — Arabic"
+            width={2304}
+            height={3456}
+            className="block h-auto w-full"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized
+          />
+        </div>
       </main>
     </>
   );
