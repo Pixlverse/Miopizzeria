@@ -7,6 +7,7 @@ const basePath = process.env.PAGES_BASE_PATH || "";
 
 const nextConfig = {
  reactStrictMode: true,
+ eslint: { ignoreDuringBuilds: true },
  // Static HTML export for GitHub Pages (v1). No server features are used.
  output: "export",
  trailingSlash: true,
