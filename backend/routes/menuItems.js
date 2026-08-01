@@ -12,6 +12,7 @@ router.get("/:id", ctrl.getOne);
 // Admin-only writes.
 router.post("/", auth, validate(menuItemSchema), ctrl.create);
 router.put("/:id", auth, validate(menuItemSchema), ctrl.update);
-router.delete("/:id", auth, ctrl.remove);
+router.patch("/:id/restore", auth, ctrl.restore);
+router.delete("/:id", auth, ctrl.remove); // soft delete (archive)
 
 module.exports = router;

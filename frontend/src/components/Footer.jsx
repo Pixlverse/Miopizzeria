@@ -82,8 +82,8 @@ export default function Footer() {
         <div className="section flex flex-col items-center justify-between gap-2 py-5 text-xs text-cream/60 sm:flex-row">
           <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
           <div className="flex gap-4">
-            <Link href="#" className="hover:text-white">Privacy</Link>
-            <Link href="#" className="hover:text-white">Terms</Link>
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link href="/terms" className="hover:text-white">Terms</Link>
           </div>
         </div>
       </div>

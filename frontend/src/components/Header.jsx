@@ -4,11 +4,13 @@ import { useRouter } from "next/router";
 import { FiMenu, FiX } from "react-icons/fi";
 import Logo from "./Logo";
 import { NAV_LINKS } from "@/utils/constants";
+import { useI18n } from "@/context/LocaleContext";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { t, locale, toggleLocale } = useI18n();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -24,9 +26,10 @@ export default function Header() {
     return () => router.events.off("routeChangeStart", close);
   }, [router.events]);
 
-  // Both the home hero and the About scroll-hero are full-bleed rust panels,
-  // so let the header sit transparent over them until scrolled.
-  const onHero = router.pathname === "/" || router.pathname === "/about";
+  // These pages open on full-bleed rust/red hero panels, so let the header sit
+  // transparent over them (blending with the hero) until scrolled.
+  const HERO_ROUTES = ["/", "/about", "/book", "/menu"];
+  const onHero = HERO_ROUTES.includes(router.pathname);
   const solid = scrolled || !onHero;
 
   return (
@@ -35,29 +38,39 @@ export default function Header() {
         solid ? "bg-rust shadow-md" : "bg-transparent"
       }`}
     >
-      <nav className="section flex h-16 items-center justify-between md:h-20">
-        <Link href="/" aria-label="Miopizzeria home">
-          <Logo variant="cream" height={52} priority className="h-11 w-auto md:h-[52px]" />
+      <nav className="flex h-16 items-center justify-between px-6 md:h-20 md:px-10 lg:px-14">
+        <Link href="/" aria-label="Miopizzeria home" className="shrink-0">
+          <Logo variant="cream" height={44} priority className="h-10 w-auto lg:h-[52px]" />
         </Link>
 
         {/* Desktop nav */}
-        <ul className="hidden items-center gap-8 md:flex">
+        <ul className="hidden items-center gap-5 md:flex lg:gap-8">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={`text-cream/90 transition-colors hover:text-white ${
-                  router.pathname === link.href ? "font-semibold text-white" : ""
+                className={`font-semibold text-cream/90 transition-colors hover:text-white ${
+                  router.pathname === link.href ? "font-bold text-white" : ""
                 }`}
               >
-                {link.label}
+                {t(`nav.${link.key}`)}
               </Link>
             </li>
           ))}
           <li>
-            <Link href="/#order" className="btn-outline px-5 py-2">
-              Order Now
+            <Link href="/book" className="btn-outline px-5 py-2">
+              {t("nav.book")}
             </Link>
+          </li>
+          <li>
+            <button
+              type="button"
+              onClick={toggleLocale}
+              className="rounded-full border border-cream/40 px-3 py-1.5 text-sm font-semibold text-cream/90 transition-colors hover:border-cream hover:text-white"
+              aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+            >
+              {locale === "ar" ? "EN" : "العربية"}
+            </button>
           </li>
         </ul>
 
@@ -79,18 +92,27 @@ export default function Header() {
           open ? "max-h-72" : "max-h-0"
         }`}
       >
-        <ul className="section flex flex-col gap-4 py-4">
+        <ul className="flex flex-col gap-4 px-6 py-4">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
-              <Link href={link.href} className="block py-1 text-cream/90 hover:text-white">
-                {link.label}
+              <Link href={link.href} className="block py-1 font-semibold text-cream/90 hover:text-white">
+                {t(`nav.${link.key}`)}
               </Link>
             </li>
           ))}
           <li>
-            <Link href="/#order" className="btn-outline w-full">
-              Order Now
+            <Link href="/book" className="btn-outline w-full">
+              {t("nav.book")}
             </Link>
+          </li>
+          <li>
+            <button
+              type="button"
+              onClick={toggleLocale}
+              className="w-full rounded-full border border-cream/40 py-2 text-sm font-semibold text-cream/90 hover:border-cream hover:text-white"
+            >
+              {locale === "ar" ? "English" : "العربية"}
+            </button>
           </li>
         </ul>
       </div>

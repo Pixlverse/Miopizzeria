@@ -2,8 +2,14 @@ const MenuItem = require("../models/MenuItem");
 
 exports.list = async (req, res, next) => {
   try {
-    // Public callers see only active items; admins (authenticated) see all.
+    // Public callers see only active, non-archived items; admins see more.
     const filter = req.user ? {} : { status: "Active" };
+    // Archived items are hidden by default; admins can request them explicitly.
+    if (req.query.archived === "true") {
+      filter.archived = true;
+    } else {
+      filter.archived = { $ne: true };
+    }
     if (req.query.category && req.query.category !== "All") {
       filter.category = req.query.category;
     }
@@ -46,11 +52,31 @@ exports.update = async (req, res, next) => {
   }
 };
 
+// Soft delete: mark as archived (hidden everywhere) rather than destroying it.
 exports.remove = async (req, res, next) => {
   try {
-    const item = await MenuItem.findByIdAndDelete(req.params.id);
+    const item = await MenuItem.findByIdAndUpdate(
+      req.params.id,
+      { archived: true },
+      { new: true }
+    );
     if (!item) return res.status(404).json({ message: "Item not found" });
-    return res.json({ message: "Deleted" });
+    return res.json(item);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// Restore a previously archived item.
+exports.restore = async (req, res, next) => {
+  try {
+    const item = await MenuItem.findByIdAndUpdate(
+      req.params.id,
+      { archived: false },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    return res.json(item);
   } catch (err) {
     return next(err);
   }

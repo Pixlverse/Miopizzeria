@@ -6,7 +6,7 @@ import { DELIVERY_PLATFORMS } from "@/utils/constants";
 export default function DeliveryPlatforms() {
   return (
     // Premium rust panel with curved top/bottom edges and a faint gold lattice.
-    <section id="order" className="relative overflow-hidden bg-rust py-24 md:py-32">
+    <section id="order" className="relative overflow-hidden bg-rust py-16 md:py-24">
       <div
         className="absolute inset-0"
         style={{

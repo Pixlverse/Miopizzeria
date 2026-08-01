@@ -1,0 +1,171 @@
+// English dictionary. Keys are looked up by dot-path via the `t()` helper.
+// Keep this file and ar.js in sync (same key structure).
+const en = {
+  language: "English",
+  nav: {
+    home: "Home",
+    menu: "Menu",
+    about: "About",
+    gallery: "Gallery",
+    events: "Events",
+    contact: "Contact",
+    book: "Book",
+  },
+  hero: {
+    title: "Pizza Cravings?",
+    subtitle: "Get It Delivered Hot & Fresh!",
+    description: "Handcrafted, wood-fired and delivered fast across Doha.",
+    cta: "Order Your Pizza Now",
+    eyebrow: "Authentic Neapolitan",
+    headline1: "Hot Pizza.",
+    headline2: "Real Passion.",
+    ctaOrder: "Order Now",
+    ctaMenu: "Explore Menu",
+    deliveryTime: "Delivery in 30–45 min",
+    alsoOn: "Also available on",
+  },
+  about: {
+    eyebrow: "Premium Italian pizza, made in Doha",
+    title: "Our Story",
+    lead: "Mio is Italian for “mine” — a simple word that carries a big promise: that every bite, every moment, every visit here is crafted for you.",
+    body: "Handcrafted Italian pizzas baked fresh daily in Doha. We pair time-honoured Neapolitan technique with premium ingredients to bring authentic Italian flavour to the heart of the city — then deliver it hot and fresh to your door.",
+    pillars: [
+      {
+        title: "Wood-Fired Oven",
+        text: "Baked at 450°C in a traditional wood-fired oven for a blistered, airy Neapolitan crust.",
+      },
+      {
+        title: "Premium Ingredients",
+        text: "San Marzano tomatoes, fior di latte and 00 flour, sourced with care for authentic taste.",
+      },
+      {
+        title: "Handcrafted Daily",
+        text: "Dough proofed for 48 hours and hand-stretched to order by our pizzaioli.",
+      },
+    ],
+  },
+  faq: {
+    eyebrow: "Good to know",
+    title: "Frequently Asked Questions",
+    items: [
+      {
+        q: "Do you deliver across Doha?",
+        a: "Yes — we deliver across Doha through Snoonu, Talabat, Rafeeq and Keeta. Coverage may vary by area and time of day.",
+      },
+      {
+        q: "Is your food halal?",
+        a: "Yes. All our meat is 100% halal certified.",
+      },
+      {
+        q: "Do you have vegetarian and gluten-free options?",
+        a: "Absolutely — explore the Vegetarian and Gluten-Free sections of our menu.",
+      },
+      {
+        q: "Can I get allergen information?",
+        a: "Please ask our team about allergens before ordering. Dishes may contain dairy, gluten and nuts.",
+      },
+      {
+        q: "Do you cater events and parties?",
+        a: "Yes! We handle party orders and event catering — send us the details on WhatsApp and we’ll take care of the rest.",
+      },
+    ],
+  },
+  events: {
+    eyebrow: "Catering & private bookings",
+    title: "Events & Party Orders",
+    lead: "From F1 watch parties to birthdays and corporate gatherings — we bring Mio’s wood-fired pizza to your table. Tell us what you need and we’ll handle the rest.",
+    types: ["F1 & Watch Parties", "Birthdays & Family", "Corporate & Office"],
+    form: {
+      title: "Request a party order",
+      note: "Fill this in and we’ll continue the conversation on WhatsApp.",
+      name: "Your name",
+      phone: "Phone number",
+      date: "Event date",
+      guests: "Number of guests",
+      type: "Event type",
+      message: "Tell us more (optional)",
+      submit: "Send on WhatsApp",
+      waIntro: "Hi Mio! I’d like to request a party order.",
+      errRequired: "This field is required",
+      errPhone: "Please enter a valid phone number",
+    },
+  },
+  whatsapp: { label: "Chat on WhatsApp" },
+  categories: {
+    eyebrow: "Straight to the good stuff",
+    title: "Popular Categories",
+    products: "Products",
+    viewItems: "View Items",
+    sandwiches: "Sandwiches",
+    coffee: "Speciality Coffee",
+    pizza: "Pizza",
+    beverages: "Beverages",
+    salads: "Salads",
+    tea: "Tea & Infusions",
+    coolers: "Refreshers & Coolers",
+    desc: {
+      sandwiches: "Fresh, tasty and made just the way you like it.",
+      coffee: "Rich aromas and perfect brews to brighten your day.",
+      pizza: "Handcrafted pizzas made with premium ingredients and baked to perfection.",
+      beverages: "Rich coffees, teas and refreshing coolers to complete your meal.",
+      salads: "Fresh, seasonal salads tossed with quality Italian ingredients.",
+      tea: "Relax with our soothing range of teas and infusions.",
+      coolers: "Cool, fruity and refreshing drinks to energize you.",
+    },
+  },
+  location: {
+    eyebrow: "Come say hi",
+    title: "Visit Us",
+    hoursTitle: "Opening hours",
+    directions: "Get Directions",
+    call: "Call branch",
+  },
+  reviews: {
+    eyebrow: "Loved in Doha",
+    title: "What our guests say",
+    ratingLabel: "based on {count} Google reviews",
+    leave: "Leave a review",
+    seeAll: "See all reviews",
+  },
+  offer: {
+    eyebrow: "This week at Mio",
+    title: "Featured Offer",
+    cta: "View on the menu",
+    alt: "Featured offer",
+  },
+  cookie: {
+    text: "We use cookies to improve your experience and analyse site traffic.",
+    accept: "Accept",
+    decline: "Decline",
+    privacy: "Privacy Policy",
+  },
+  legal: {
+    updated: "Last updated: July 2026",
+    privacy: {
+      title: "Privacy Policy",
+      intro: "This Privacy Policy explains how Miopizzeria collects, uses and protects your information when you use our website.",
+      sections: [
+        { h: "Information we collect", p: "We collect information you provide directly — such as your name, phone number and order details — and information collected automatically, such as usage data and cookies." },
+        { h: "How we use it", p: "To process and deliver your orders, respond to enquiries, improve our website and services, and, where permitted, send you relevant updates." },
+        { h: "Cookies & analytics", p: "We use cookies and analytics (e.g. Google Analytics) to understand how the site is used. You can control cookies through your browser settings." },
+        { h: "Sharing", p: "We share data only with service providers who help us operate (e.g. delivery platforms and analytics), and where required by law. We do not sell your personal data." },
+        { h: "Your rights", p: "You may request access to, correction of, or deletion of your personal data by contacting us." },
+        { h: "Contact", p: "For any privacy questions, contact us at info@miopizzeria.qa." },
+      ],
+    },
+    terms: {
+      title: "Terms & Conditions",
+      intro: "By using this website and placing orders, you agree to the following terms.",
+      sections: [
+        { h: "Orders", p: "All orders are subject to availability and confirmation. Prices are shown in Qatari Riyal (QAR) and may change without notice." },
+        { h: "Delivery", p: "Delivery is fulfilled via third-party platforms (Snoonu, Talabat, Rafeeq, Keeta). Delivery times and areas are estimates and may vary." },
+        { h: "Allergens", p: "Our dishes may contain allergens including dairy, gluten and nuts. Please ask our team before ordering if you have specific requirements." },
+        { h: "Intellectual property", p: "All content on this site, including logos, images and text, is the property of Miopizzeria and may not be reused without permission." },
+        { h: "Liability", p: "We are not liable for indirect or consequential loss arising from use of this website to the extent permitted by law." },
+        { h: "Contact", p: "Questions about these terms? Contact info@miopizzeria.qa." },
+      ],
+    },
+  },
+};
+
+export default en;

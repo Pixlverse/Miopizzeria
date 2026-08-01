@@ -1,6 +1,8 @@
 import Head from "next/head";
 import Header from "./Header";
 import Footer from "./Footer";
+import WhatsAppButton from "./WhatsAppButton";
+import CookieConsent from "./CookieConsent";
 import { BRAND } from "@/utils/constants";
 
 export default function Layout({ children, title, description }) {
@@ -23,6 +25,8 @@ export default function Layout({ children, title, description }) {
       <Header />
       <main className="min-h-screen">{children}</main>
       <Footer />
+      <WhatsAppButton />
+      <CookieConsent />
     </>
   );
 }

@@ -1,64 +1,84 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { FiArrowRight } from "react-icons/fi";
+import { FiStar, FiArrowRight } from "react-icons/fi";
 import { formatPrice } from "@/utils/formatters";
 
 /**
- * Poster-style menu card — shows the full portrait product image (9:16,
- * uncropped) with overlaid tags, a price badge, and an Order button over a slim
- * bottom gradient. Matches the Featured poster look.
+ * Clean white product card — a photo panel on top, then a centered name,
+ * star rating, short description, and a price + order hint. The whole card is
+ * a link to the delivery-apps ("order") section.
  */
 export default function MenuCard({ item, index = 0 }) {
+  // Decorative rating until real review data is wired in.
+  const rating = item.bestSeller ? 5 : 4;
+
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: (index % 3) * 0.1 }}
-      className="group relative aspect-[9/16] overflow-hidden rounded-[1.75rem] bg-rust shadow-card ring-1 ring-black/5 transition-all duration-500 ease-bounce hover:-translate-y-2 hover:shadow-card-hover"
+    <Link
+      href="/#order"
+      aria-label={`Order ${item.name}`}
+      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-rust focus-visible:ring-offset-2"
     >
-      <Image
-        src={item.image || item.imageUrl}
-        alt={item.name}
-        fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-      />
+      <motion.article
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.45, delay: (index % 4) * 0.08 }}
+        className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_rgba(139,61,47,0.10)] ring-1 ring-rust/5 transition-all duration-400 ease-bounce group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_rgba(139,61,47,0.18)]"
+      >
+        {/* Photo */}
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <Image
+            src={item.image || item.imageUrl}
+            alt={item.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+            {item.bestSeller && (
+              <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink shadow ring-1 ring-black/10">
+                ★ Best Seller
+              </span>
+            )}
+            {item.tags?.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/20 backdrop-blur-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
 
-      {/* Best-seller + tags */}
-      <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
-        {item.bestSeller && (
-          <span className="rounded-full bg-amber-400 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink shadow ring-1 ring-black/10">
-            ★ Best Seller
-          </span>
-        )}
-        {item.tags?.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-full bg-black/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/20 backdrop-blur-md"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+        {/* Content */}
+        <div className="flex flex-1 flex-col items-center p-5 text-center">
+          <h3 className="font-display text-xl font-bold text-ink transition-colors group-hover:text-rust">
+            {item.name}
+          </h3>
 
-      {/* Price */}
-      <span className="absolute right-4 top-4 rounded-full bg-cream px-3.5 py-1.5 text-sm font-bold text-rust shadow-lg">
-        {formatPrice(item.price)}
-      </span>
+          <div className="mt-1.5 flex items-center gap-0.5 text-amber-400">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <FiStar
+                key={i}
+                size={14}
+                className={i < rating ? "fill-amber-400" : "text-amber-400/30"}
+              />
+            ))}
+          </div>
 
-      {/* Order action over a slim scrim */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-4 pt-16">
-        <Link
-          href="/#order"
-          aria-label={`Order ${item.name}`}
-          className="group/btn flex w-full items-center justify-center gap-2 rounded-full bg-cream py-3 text-sm font-bold uppercase tracking-wide text-rust shadow-lg transition-all duration-300 ease-bounce hover:scale-[1.02] hover:bg-white"
-        >
-          Order Now
-          <FiArrowRight className="transition-transform duration-300 group-hover/btn:translate-x-1" />
-        </Link>
-      </div>
-    </motion.article>
+          <p className="mt-2.5 line-clamp-2 text-sm text-muted">{item.description}</p>
+
+          <div className="mt-auto flex w-full items-center justify-between gap-3 pt-4">
+            <span className="text-lg font-bold text-rust">{formatPrice(item.price)}</span>
+            <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-rust/70 transition-colors group-hover:text-rust">
+              Order
+              <FiArrowRight className="transition-transform group-hover:translate-x-0.5 rtl:rotate-180" />
+            </span>
+          </div>
+        </div>
+      </motion.article>
+    </Link>
   );
 }

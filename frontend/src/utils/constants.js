@@ -4,22 +4,27 @@
 // ===========================================================
 
 export const BRAND = {
-  name: "Miopizzeria",
-  tagline: "Premium Italian Pizza in Qatar",
-  phone: "+974 0000 0000",
-  email: "hello@miopizzeria.qa",
-  address: "Doha, Qatar",
+  name: "Mio Pizzeria",
+  tagline: "Authentic Neapolitan Pizza in Qatar",
+  phone: "+974 6006 4003",
+  email: "info@miopizzeria.qa",
+  address:
+    "Dafna Park, Unit 24, Building 55, Street 841, Zone 63 — Opp. Marriott Marquis City Center, Behind Pullman Hotels (Excellence Tower), Doha, Qatar",
   about:
-    "Handcrafted Italian pizzas baked fresh daily in Doha. Premium ingredients, wood-fired flavour, delivered to your door.",
+    "Born from a love of Naples — pizza made with 00 flour, tangy San Marzano tomatoes and creamy mozzarella, baked to perfection in a wood-fired oven here in Doha.",
 };
 
+// `key` maps to the i18n dictionary (nav.<key>); `label` is the English fallback.
 export const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "Menu", href: "/menu" },
-  { label: "About", href: "/about" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
+  { key: "home", label: "Home", href: "/" },
+  { key: "menu", label: "Menu", href: "/menu" },
+  { key: "about", label: "About", href: "/about" },
+  { key: "events", label: "Events", href: "/events" },
+  { key: "contact", label: "Contact", href: "/contact" },
 ];
+
+// WhatsApp business number (digits only, international format). Dummy for now.
+export const WHATSAPP_NUMBER = "97400000000";
 
 // Each platform redirects to its configured ordering URL. `color` is the
 // brand accent used for the hover glow; `logo` is the app icon in /public.
@@ -67,9 +72,80 @@ export const SOCIAL_LINKS = {
 };
 
 export const HOURS = [
-  { day: "Sunday – Thursday", time: "11:00 AM – 11:00 PM" },
-  { day: "Friday", time: "1:00 PM – 12:00 AM" },
-  { day: "Saturday", time: "11:00 AM – 12:00 AM" },
+  { day: "Monday", time: "10:00 – 22:00" },
+  { day: "Tuesday", time: "10:00 – 22:00" },
+  { day: "Wednesday", time: "11:00 – 22:00" },
+  { day: "Thursday", time: "11:00 – 22:00" },
+  { day: "Friday", time: "10:00 – 22:00" },
+  { day: "Saturday", time: "10:00 – 22:00" },
+  { day: "Sunday", time: "10:00 – 21:00" },
+];
+
+// Single location. `mapQuery` feeds the Google Maps embed + directions link.
+export const BRANCHES = [
+  {
+    id: "dafna",
+    name: "Mio Pizzeria — Dafna",
+    address:
+      "Dafna Park, Unit 24, Building 55, Street 841, Zone 63. Opp. Marriott Marquis City Center, Behind Pullman Hotels (Excellence Tower), Doha, Qatar",
+    mapQuery: "Mio Pizzeria, Doha, Qatar",
+    phone: "+974 6006 4003",
+    hours: HOURS,
+  },
+];
+
+// Google reviews (real, from the Google Business listing).
+// `reviewUrl` = "leave a review"; `placeUrl` = see all.
+export const GOOGLE_REVIEWS = {
+  rating: 4.7,
+  count: 284,
+  reviewUrl:
+    "https://www.google.com/search?sca_esv=5567dd14a60c546e&cs=1&sxsrf=APpeQnsksKwpVldRZlL3iTGXP_UwOuHVzQ:1783924381480&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_w_HDcBJIbG6iPOPtNWKjPFBBJCEmnDHARDcBgm2UhnKlU7h4bnx-92Pi8hWeGYyhuZ69GEh6cJwnuGFS8bA9Sip8R9b&q=Mio+Pizzeria+Reviews&sa=X&ved=2ahUKEwjOlsGYhM-VAxX9dmwGHT_2OpcQ0bkNegQIMBAF&biw=1440&bih=749&dpr=2",
+  placeUrl: "https://share.google/Y7FIyu4xJ8bKRnlCl",
+  items: [
+    {
+      id: 1,
+      author: "Ranitidine Q",
+      meta: "Local Guide · 259 reviews",
+      rating: 5,
+      time: "2 months ago",
+      text: "A visit to this place was long overdue. Location is absolutely amazing overlooking Marriott. We opted to sit outside as weather is still nice. Since it was first time here we wanted to try and that's why chose their Margherita pizza. The people are very very nice and they made an exceptional pizza. Will definitely come again to try their pesto pizza.",
+    },
+    {
+      id: 2,
+      author: "Rachel Paras",
+      meta: "Local Guide · 17 reviews",
+      rating: 5,
+      time: "6 months ago",
+      text: "Very good pizza place, the chef's specialty pizza is a must try. The saltiness, freshness is the right balance plus its gluten free! Definitely worth a visit. The food is a five star. The coffee is like a comfort of a hug.",
+    },
+    {
+      id: 3,
+      author: "Saad Huwio",
+      meta: "Local Guide · 12 reviews",
+      rating: 5,
+      time: "7 months ago",
+      text: "This pizzaria stands out, not only because of its top tier pizza but also because of its locations, great chef and kind staff. I have tried several types of pizzas, the truffle pizza stands out! They also make tasty tiramisu and good cappuccinos :)",
+    },
+  ],
+};
+
+// Home promo — a single editable image that links to a menu item/section.
+export const HOME_OFFER = {
+  image: "/images/prod-3.jpg",
+  href: "/menu#gourmet",
+};
+
+// Popular categories on the home page — full-scene photo tiles (product on the
+// right, brand-rust space on the left for the copy). `nameKey` -> categories.<key>
+// in i18n; `href` deep-links into the menu.
+// `zoom` optionally scales up a photo whose product sits small in frame;
+// `origin` keeps that product in view while the rest crops away.
+export const POPULAR_CATEGORIES = [
+  { id: "pizza", nameKey: "pizza", image: "/images/cat1pizza.png", href: "/menu?cat=pizza" },
+  { id: "beverages", nameKey: "beverages", image: "/images/cat2-beverages.png", href: "/menu?cat=coolers", zoom: 1.5, origin: "82% 58%" },
+  { id: "salads", nameKey: "salads", image: "/images/cat3salads.png", href: "/menu?cat=salads" },
+  { id: "sandwiches", nameKey: "sandwiches", image: "/images/cat4sandwich.png", href: "/menu?cat=sandwich" },
 ];
 
 // Featured pizzas for the home preview (mock).
@@ -158,93 +234,75 @@ export const FEATURED_PRODUCTS = [
 // `bestSeller` surfaces a badge within its category. `tags` reuse TAG_STYLES.
 export const MENU_CATEGORIES = [
   {
-    id: "classic",
-    name: "Classic Pizzas",
+    id: "pizza",
+    name: "Pizza",
+    icon: "/images/pizza.png",
     items: [
       { id: "margherita", name: "Margherita", price: 38, image: "/images/prod-1.jpg", description: "San Marzano tomato, fresh mozzarella, basil, EVOO.", tags: ["Vegetarian"], bestSeller: true },
-      { id: "marinara", name: "Marinara", price: 34, image: "/images/prod-2.jpg", description: "Tomato, garlic, oregano, extra-virgin olive oil.", tags: ["Vegetarian"] },
-      { id: "pepperoni", name: "Pepperoni Classico", price: 45, image: "/images/prod-3.jpg", description: "Double pepperoni, mozzarella, oregano.", tags: ["Spicy"], bestSeller: true },
-      { id: "prosciutto", name: "Prosciutto e Rucola", price: 52, image: "/images/prod-4.jpg", description: "Parma ham, rocket, shaved parmesan, mozzarella." },
+      { id: "pepperoni", name: "Pepperoni Classico", price: 45, image: "/images/prod-2.jpg", description: "Double pepperoni, mozzarella, oregano.", tags: ["Spicy"], bestSeller: true },
+      { id: "diavola", name: "Diavola", price: 52, image: "/images/prod-3.jpg", description: "Spicy salami, n'duja, chili flakes, mozzarella.", tags: ["Spicy"] },
+      { id: "quattro-formaggi", name: "Quattro Formaggi", price: 54, image: "/images/prod-4.jpg", description: "Mozzarella, gorgonzola, fontina, parmesan.", tags: ["Vegetarian"] },
     ],
   },
   {
-    id: "gourmet",
-    name: "Gourmet Pizzas",
+    id: "sandwich",
+    name: "Sandwich",
+    icon: "/images/sandwich.png",
     items: [
-      { id: "truffle-funghi", name: "Truffle Funghi", price: 58, image: "/images/prod-5.jpg", description: "Wild mushrooms, truffle cream, fontina, thyme.", tags: ["Vegetarian", "New"], bestSeller: true },
-      { id: "quattro-formaggi", name: "Quattro Formaggi", price: 54, image: "/images/prod-1.jpg", description: "Mozzarella, gorgonzola, fontina, parmesan.", tags: ["Vegetarian"] },
-      { id: "burrata-parma", name: "Burrata & Parma", price: 60, image: "/images/prod-2.jpg", description: "Creamy burrata, Parma ham, cherry tomato, basil.", tags: ["New"] },
+      { id: "chicken-panini", name: "Grilled Chicken Panini", price: 34, image: "/images/prod-5.jpg", description: "Grilled chicken, mozzarella, pesto, ciabatta.", bestSeller: true },
+      { id: "caprese-sandwich", name: "Caprese Sandwich", price: 30, image: "/images/prod-1.jpg", description: "Tomato, mozzarella, basil, balsamic glaze.", tags: ["Vegetarian"] },
+      { id: "beef-sub", name: "Italian Beef Sub", price: 38, image: "/images/prod-2.jpg", description: "Slow-cooked beef, peppers, provolone." },
     ],
   },
   {
-    id: "specialty",
-    name: "Specialty Pizzas",
+    id: "coffee",
+    name: "Speciality Coffee",
+    icon: "/images/coffee.png",
     items: [
-      { id: "diavola", name: "Diavola", price: 52, image: "/images/prod-3.jpg", description: "Spicy salami, n'duja, chili flakes, mozzarella.", tags: ["Spicy"], bestSeller: true },
-      { id: "bbq-chicken", name: "BBQ Chicken", price: 50, image: "/images/prod-4.jpg", description: "Grilled chicken, BBQ sauce, red onion, mozzarella." },
-      { id: "seafood", name: "Seafood Marinara", price: 62, image: "/images/prod-5.jpg", description: "Shrimp, calamari, mussels, garlic, parsley." },
+      { id: "espresso", name: "Espresso", price: 12, image: "/images/prod-3.jpg", description: "Single-origin, rich crema.", bestSeller: true },
+      { id: "cappuccino", name: "Cappuccino", price: 16, image: "/images/prod-4.jpg", description: "Espresso, steamed milk, velvety foam." },
+      { id: "flat-white", name: "Flat White", price: 18, image: "/images/prod-5.jpg", description: "Double ristretto, silky microfoam." },
+      { id: "spanish-latte", name: "Spanish Latte", price: 20, image: "/images/prod-1.jpg", description: "Espresso, condensed milk, steamed milk." },
     ],
   },
   {
-    id: "vegetarian",
-    name: "Vegetarian Pizzas",
+    id: "tea",
+    name: "Tea & Infusions",
+    icon: "/images/tea.png",
     items: [
-      { id: "garden-deluxe", name: "Garden Deluxe", price: 42, image: "/images/prod-1.jpg", description: "Peppers, olives, sweet corn, red onion, mozzarella.", tags: ["Vegetarian"], bestSeller: true },
-      { id: "ortolana", name: "Ortolana", price: 44, image: "/images/prod-2.jpg", description: "Grilled courgette, aubergine, peppers, tomato.", tags: ["Vegetarian"] },
-      { id: "spinach-ricotta", name: "Spinach & Ricotta", price: 46, image: "/images/prod-3.jpg", description: "Baby spinach, ricotta, garlic, mozzarella.", tags: ["Vegetarian"] },
+      { id: "karak", name: "Karak Chai", price: 10, image: "/images/prod-2.jpg", description: "Spiced milk tea, cardamom, saffron.", bestSeller: true },
+      { id: "moroccan-mint", name: "Moroccan Mint", price: 14, image: "/images/prod-3.jpg", description: "Green tea, fresh mint, light honey." },
+      { id: "chamomile", name: "Chamomile Infusion", price: 14, image: "/images/prod-4.jpg", description: "Soothing chamomile blossoms." },
     ],
   },
   {
-    id: "gluten-free",
-    name: "Gluten-Free",
+    id: "coolers",
+    name: "Refreshers & Coolers",
+    icon: "/images/coolers.png",
     items: [
-      { id: "gf-margherita", name: "GF Margherita", price: 42, image: "/images/prod-4.jpg", description: "Classic margherita on a gluten-free base.", tags: ["Vegetarian"], bestSeller: true },
-      { id: "gf-pepperoni", name: "GF Pepperoni", price: 48, image: "/images/prod-5.jpg", description: "Double pepperoni on a gluten-free base.", tags: ["Spicy"] },
+      { id: "lemon-mint", name: "Lemon & Mint Cooler", price: 16, image: "/images/prod-5.jpg", description: "Fresh lemon, mint, a touch of sugar.", bestSeller: true },
+      { id: "berry-refresher", name: "Berry Refresher", price: 18, image: "/images/prod-1.jpg", description: "Mixed berries, sparkling water, ice." },
+      { id: "passion-cooler", name: "Passion Fruit Cooler", price: 18, image: "/images/prod-2.jpg", description: "Passion fruit, citrus, soda." },
     ],
   },
   {
-    id: "breakfast",
-    name: "Breakfast",
+    id: "starters",
+    name: "Starters",
+    icon: "/images/starters.png",
     items: [
-      { id: "shakshuka-pizza", name: "Shakshuka Pizza", price: 36, image: "/images/prod-1.jpg", description: "Baked eggs, spiced tomato, peppers, herbs.", bestSeller: true },
-      { id: "egg-cheese-focaccia", name: "Egg & Cheese Focaccia", price: 30, image: "/images/prod-2.jpg", description: "Soft focaccia, scrambled egg, cheese.", tags: ["Vegetarian"] },
-      { id: "breakfast-calzone", name: "Breakfast Calzone", price: 34, image: "/images/prod-3.jpg", description: "Folded pizza with egg, cheese & turkey." },
+      { id: "garlic-bread", name: "Garlic Bread", price: 18, image: "/images/prod-3.jpg", description: "Wood-fired bread, garlic butter, herbs.", tags: ["Vegetarian"], bestSeller: true },
+      { id: "bruschetta", name: "Bruschetta", price: 22, image: "/images/prod-4.jpg", description: "Toasted bread, tomato, basil, EVOO.", tags: ["Vegetarian"] },
+      { id: "arancini", name: "Arancini", price: 26, image: "/images/prod-5.jpg", description: "Crispy risotto balls, mozzarella centre." },
     ],
   },
   {
-    id: "sides",
-    name: "Sides",
+    id: "salads",
+    name: "Salads",
+    icon: "/images/salad.png",
     items: [
-      { id: "garlic-bread", name: "Garlic Bread", price: 18, image: "/images/prod-4.jpg", description: "Wood-fired bread, garlic butter, herbs.", tags: ["Vegetarian"], bestSeller: true },
-      { id: "truffle-fries", name: "Truffle Fries", price: 24, image: "/images/prod-5.jpg", description: "Crispy fries, truffle oil, parmesan.", tags: ["Vegetarian"] },
-      { id: "artichoke-dip", name: "Artichoke Dip", price: 32, image: "/images/prod-1.jpg", description: "Creamy baked artichoke dip with flatbread.", tags: ["Vegetarian"] },
-    ],
-  },
-  {
-    id: "desserts",
-    name: "Desserts",
-    items: [
-      { id: "gelato", name: "Gelato", price: 25, image: "/images/prod-2.jpg", description: "Three scoops of artisan gelato.", bestSeller: true },
-      { id: "tiramisu", name: "Tiramisu", price: 28, image: "/images/prod-3.jpg", description: "Espresso-soaked ladyfingers, mascarpone." },
-      { id: "nutella-pizza", name: "Nutella Pizza", price: 30, image: "/images/prod-4.jpg", description: "Sweet dough, Nutella, powdered sugar.", tags: ["Vegetarian"] },
-    ],
-  },
-  {
-    id: "drinks",
-    name: "Drinks",
-    items: [
-      { id: "lemonade", name: "Fresh Lemonade", price: 16, image: "/images/prod-5.jpg", description: "Fresh lemon, mint, a touch of sugar.", bestSeller: true },
-      { id: "italian-soda", name: "Italian Soda", price: 14, image: "/images/prod-1.jpg", description: "Sparkling water, fruit syrup, ice." },
-      { id: "hot-chocolate", name: "Hot Chocolate", price: 18, image: "/images/prod-2.jpg", description: "Rich Italian hot chocolate, whipped cream." },
-    ],
-  },
-  {
-    id: "combos",
-    name: "Combos",
-    items: [
-      { id: "family-combo", name: "Family Combo", price: 99, image: "/images/prod-3.jpg", description: "2 pizzas, 2 sides & 4 drinks.", bestSeller: true },
-      { id: "duo-deal", name: "Duo Deal", price: 65, image: "/images/prod-4.jpg", description: "2 pizzas + garlic bread." },
-      { id: "solo-meal", name: "Solo Meal", price: 45, image: "/images/prod-5.jpg", description: "1 pizza, fries & a drink." },
+      { id: "caesar", name: "Classic Caesar", price: 32, image: "/images/prod-1.jpg", description: "Romaine, parmesan, croutons, Caesar dressing.", bestSeller: true },
+      { id: "caprese-salad", name: "Caprese Salad", price: 30, image: "/images/prod-2.jpg", description: "Tomato, buffalo mozzarella, basil.", tags: ["Vegetarian"] },
+      { id: "rocket-parmesan", name: "Rocket & Parmesan", price: 28, image: "/images/prod-3.jpg", description: "Rocket, shaved parmesan, lemon dressing.", tags: ["Vegetarian"] },
     ],
   },
 ];

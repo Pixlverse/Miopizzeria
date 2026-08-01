@@ -24,7 +24,7 @@ export default function Testimonials() {
   const next = () => setIndex((i) => (i + 1) % count);
 
   return (
-    <section className="relative overflow-hidden py-20 md:py-28">
+    <section className="relative overflow-hidden pb-6 pt-14 md:pb-8 md:pt-20">
       <SectionBackdrop tone="light" />
 
       <div className="section relative z-10 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">

@@ -1,72 +1,177 @@
-import { FiMapPin, FiClock, FiPhone } from "react-icons/fi";
+import Image from "next/image";
+import { FiMapPin, FiClock, FiPhone, FiNavigation, FiExternalLink } from "react-icons/fi";
+import { FaCar, FaChair, FaPizzaSlice, FaHeart } from "react-icons/fa";
 import SectionBackdrop from "./SectionBackdrop";
-import { BRAND, HOURS } from "@/utils/constants";
+import { BRANCHES } from "@/utils/constants";
+import { useI18n } from "@/context/LocaleContext";
 
-const DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-  BRAND.address
-)}`;
+const FEATURES = [
+  { Icon: FaCar, lines: ["Easy", "Parking"] },
+  { Icon: FaChair, lines: ["Cozy", "Ambience"] },
+  { Icon: FaPizzaSlice, lines: ["Authentic", "Italian Cuisine"] },
+  { Icon: FaHeart, lines: ["Loved by", "Our Guests"] },
+];
 
-export default function Location() {
+export default function Location({ hideHeader = false }) {
+  const { t } = useI18n();
+  const branch = BRANCHES[0];
+
+  const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(
+    branch.mapQuery,
+  )}&output=embed`;
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    branch.mapQuery,
+  )}`;
+  const placeUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    branch.mapQuery,
+  )}`;
+
   return (
-    <section className="relative overflow-hidden py-20 md:py-28">
+    <section className="relative overflow-hidden py-14 md:py-20">
       <SectionBackdrop />
 
       <div className="section relative z-10">
-        <div className="mb-12 text-center">
-          <p className="font-display text-xl italic text-rust-light">Come say hi</p>
-          <h2 className="section-title mt-2">Visit Us</h2>
-        </div>
-
-        {/* Map with floating info card */}
-        <div className="relative">
-          <div className="overflow-hidden rounded-[2rem] shadow-card">
-            <iframe
-              title="Miopizzeria location"
-              src="https://www.google.com/maps?q=Doha%2C%20Qatar&output=embed"
-              className="h-[420px] w-full border-0 md:h-[560px]"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-
-          <div className="relative z-10 mx-auto -mt-24 w-[calc(100%-2rem)] max-w-md rounded-3xl bg-white p-7 shadow-2xl md:absolute md:left-10 md:top-1/2 md:mx-0 md:mt-0 md:w-[24rem] md:-translate-y-1/2">
-            <h3 className="text-2xl font-bold text-ink">{BRAND.name} Doha</h3>
-
-            <p className="mt-3 flex items-start gap-3 text-muted">
-              <FiMapPin className="mt-0.5 shrink-0 text-rust" size={18} />
-              <span>{BRAND.address}</span>
+        {!hideHeader && (
+          <div className="mb-12 text-center">
+            <p className="flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-[0.3em] text-rust/70">
+              <span className="h-px w-8 bg-rust/30" aria-hidden="true" />
+              {t("location.eyebrow")}
+              <span className="h-px w-8 bg-rust/30" aria-hidden="true" />
             </p>
+            <h2 className="mt-2 font-display text-5xl md:text-6xl">
+              <span className="text-ink">Visit </span>
+              <span className="text-rust">Us</span>
+            </h2>
+            <p className="mt-2 font-display text-lg italic text-muted">
+              We&apos;d love to welcome you!
+            </p>
+          </div>
+        )}
 
-            <hr className="my-5 border-neutral" />
+        <div className="mx-auto max-w-5xl rounded-[2rem] bg-white p-6 shadow-card ring-1 ring-rust/10 md:p-8">
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Left — details */}
+            <div className="flex flex-col">
+              {/* Name */}
+              <div className="flex items-start gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-rust text-cream">
+                  <FiMapPin size={20} />
+                </span>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold text-ink md:text-3xl">
+                    {branch.name}
+                  </h3>
+                  <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                    Authentic Italian. Made with Love.
+                  </p>
+                  <span className="mt-2 block h-0.5 w-12 rounded-full bg-rust/40" />
+                </div>
+              </div>
 
-            <div className="flex items-start gap-3">
-              <FiClock className="mt-0.5 shrink-0 text-rust" size={18} />
-              <div className="flex-1 space-y-1 text-sm">
-                {HOURS.map((h) => (
-                  <div key={h.day} className="flex justify-between gap-4">
-                    <span className="text-muted">{h.day}</span>
-                    <span className="font-medium text-ink">{h.time}</span>
-                  </div>
-                ))}
+              {/* Address */}
+              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-rust/5 p-4">
+                <FiMapPin className="mt-0.5 shrink-0 text-rust/60" size={18} />
+                <p className="leading-relaxed text-muted">{branch.address}</p>
+              </div>
+
+              <hr className="my-6 border-rust/10" />
+
+              {/* Hours */}
+              <div className="flex items-start gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-rust text-cream">
+                  <FiClock size={20} />
+                </span>
+                <div className="flex-1">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-rust">
+                    {t("location.hoursTitle")}
+                  </p>
+                  <ul className="mt-3 space-y-1.5">
+                    {branch.hours.map((h) => (
+                      <li key={h.day} className="flex items-center justify-between gap-4 text-sm">
+                        <span className="text-ink">{h.day}</span>
+                        <span className="font-semibold text-rust">{h.time}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <hr className="my-6 border-rust/10" />
+
+              {/* Call */}
+              <div className="flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-rust text-cream">
+                  <FiPhone size={20} />
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-rust">
+                    {t("location.call")}
+                  </p>
+                  <a
+                    href={`tel:${branch.phone}`}
+                    className="font-display text-xl text-ink transition-colors hover:text-rust"
+                  >
+                    {branch.phone}
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-3">
-              <FiPhone className="shrink-0 text-rust" size={18} />
-              <a href={`tel:${BRAND.phone}`} className="text-sm text-ink hover:text-rust">
-                {BRAND.phone}
-              </a>
-            </div>
+            {/* Right — map + interior */}
+            <div className="flex flex-col gap-4">
+              <div className="relative h-64 overflow-hidden rounded-2xl ring-1 ring-rust/10">
+                <iframe
+                  title={branch.name}
+                  src={mapSrc}
+                  className="h-full w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <a
+                  href={placeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 end-3 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold uppercase tracking-wide text-rust shadow-md backdrop-blur transition-colors hover:bg-white"
+                >
+                  <FiExternalLink size={14} /> Open in Maps
+                </a>
+              </div>
 
-            <a
-              href={DIRECTIONS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 flex items-center justify-center rounded-2xl bg-rust-dark py-3.5 text-sm font-bold uppercase tracking-wide text-cream transition-colors hover:bg-rust"
-            >
-              Get Directions
-            </a>
+              {/* Interior with feature overlay */}
+              <div className="relative flex-1 overflow-hidden rounded-2xl">
+                <Image
+                  src="/images/rest3.jpg"
+                  alt="Inside Mio Pizzeria"
+                  fill
+                  sizes="(max-width: 1024px) 92vw, 46vw"
+                  className="object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 grid grid-cols-4 gap-1 bg-gradient-to-t from-[#3a160e]/95 via-[#3a160e]/80 to-transparent px-2 pb-3 pt-10">
+                  {FEATURES.map(({ Icon, lines }) => (
+                    <div key={lines.join(" ")} className="flex flex-col items-center gap-1.5 text-center">
+                      <Icon className="text-cream" size={18} />
+                      <span className="text-[10px] font-semibold leading-tight text-cream/90">
+                        {lines[0]}
+                        <br />
+                        {lines[1]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Get directions */}
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mt-6 flex items-center justify-center gap-2 rounded-full bg-rust py-4 text-sm font-bold uppercase tracking-wide text-cream shadow-md transition-colors hover:bg-rust-dark"
+          >
+            <FiNavigation className="transition-transform group-hover:translate-x-0.5" size={16} />
+            {t("location.directions")}
+          </a>
         </div>
       </div>
     </section>

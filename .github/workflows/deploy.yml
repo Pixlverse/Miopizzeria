@@ -23,6 +23,9 @@ jobs:
     env:
       # v1 = interim PDF-menu landing (the QR target)
       NEXT_PUBLIC_SITE_VERSION: "1"
+      # GA4 measurement ID — set as a repo variable (Settings → Secrets and
+      # variables → Actions → Variables). Empty = analytics disabled.
+      NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

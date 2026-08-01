@@ -18,6 +18,9 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/menu-items", require("./routes/menuItems"));
 app.use("/api/categories", require("./routes/categories"));
 app.use("/api/settings", require("./routes/settings"));
+app.use("/api/bookings", require("./routes/bookings"));
+app.use("/api/party-orders", require("./routes/partyOrders"));
+app.use("/api/users", require("./routes/users"));
 
 // 404 + error handling
 app.use((req, res) => res.status(404).json({ message: "Not found" }));

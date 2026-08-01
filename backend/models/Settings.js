@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const dayHoursSchema = new mongoose.Schema(
-  { open: String, close: String },
+  { open: String, close: String, closed: { type: Boolean, default: false } },
   { _id: false }
 );
 
