@@ -144,7 +144,7 @@ export const HOME_OFFER = {
 export const POPULAR_CATEGORIES = [
   { id: "pizza", nameKey: "pizza", image: "/images/cat1pizza.png", href: "/menu?cat=pizza" },
   { id: "beverages", nameKey: "beverages", image: "/images/cat2-beverages.png", href: "/menu?cat=coolers", zoom: 1.5, origin: "82% 58%" },
-  { id: "salads", nameKey: "salads", image: "/images/cat3salads.png", href: "/menu?cat=salads" },
+  { id: "salads", nameKey: "salads", image: "/images/cat3salads.jpg", href: "/menu?cat=salads" },
   { id: "sandwiches", nameKey: "sandwiches", image: "/images/cat4sandwich.png", href: "/menu?cat=sandwich" },
 ];
 

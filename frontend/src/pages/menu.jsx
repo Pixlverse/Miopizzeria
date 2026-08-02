@@ -47,7 +47,7 @@ export default function MenuPage() {
       {/* Full-bleed food hero — copy on the left, the spread on the right */}
       <section className="relative flex min-h-[52vh] items-center overflow-hidden bg-[#5E2A20] pt-24">
         <Image
-          src="/images/menu-main.png"
+          src="/images/menu-main.jpg"
           alt="A spread of Mio pizza, sandwich, salad and iced coffee"
           fill
           priority
