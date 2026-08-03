@@ -17,6 +17,8 @@ app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/menu-items", require("./routes/menuItems"));
 app.use("/api/categories", require("./routes/categories"));
+app.use("/api/gallery", require("./routes/gallery"));
+app.use("/api/uploads", require("./routes/uploads"));
 app.use("/api/settings", require("./routes/settings"));
 app.use("/api/bookings", require("./routes/bookings"));
 app.use("/api/party-orders", require("./routes/partyOrders"));

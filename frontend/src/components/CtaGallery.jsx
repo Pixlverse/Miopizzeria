@@ -3,18 +3,7 @@ import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
 import PaperTexture from "./PaperTexture";
 import { useI18n } from "@/context/LocaleContext";
-
-const TILE_IMAGES = [
-  "/images/prod-1.jpg",
-  "/images/rest1.jpg",
-  "/images/prod-3.jpg",
-  "/images/rest2.jpg",
-  "/images/prod-5.jpg",
-  "/images/rest3.jpg",
-  "/images/prod-2.jpg",
-  "/images/rest4.jpg",
-  "/images/prod-4.jpg",
-];
+import { useGallery } from "@/hooks/useGallery";
 
 // Deterministic U-shaped arc: tiles dip toward the centre, rise at the edges.
 // Alternate tiles are hidden on mobile so the arc doesn't overcrowd.
@@ -29,13 +18,15 @@ const TILES = Array.from({ length: TILE_COUNT }, (_, i) => {
     rotate: (i % 2 === 0 ? -1 : 1) * (5 + (i % 3) * 4),
     delay: (i % 5) * 0.4,
     dur: 3 + (i % 3) * 0.7,
-    img: TILE_IMAGES[i % TILE_IMAGES.length],
     mobileHide: i % 2 === 1, // show ~half on small screens
   };
 });
 
 export default function CtaGallery() {
   const { t } = useI18n();
+  // Same admin-managed images as /gallery, cycled around the arc.
+  const { images } = useGallery();
+
   return (
     <section className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[480px]">
       {/* Deep rust backdrop */}
@@ -70,7 +61,13 @@ export default function CtaGallery() {
                 style={{ width: tile.size, height: tile.size, transform: `rotate(${tile.rotate}deg)` }}
               >
                 <div className="relative h-full w-full">
-                  <Image src={tile.img} alt="" fill sizes="80px" className="object-cover" />
+                  <Image
+                    src={images[i % images.length].imageUrl}
+                    alt=""
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
                 </div>
               </div>
             </div>

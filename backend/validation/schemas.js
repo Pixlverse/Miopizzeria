@@ -11,10 +11,19 @@ const menuItemSchema = z.object({
   price: z.coerce.number().min(0),
   description: z.string().max(300).optional().default(""),
   imageUrl: z.string().max(500).optional().default(""),
+  imagePublicId: z.string().max(300).optional().default(""),
   tags: z.array(z.string().max(30)).optional().default([]),
   bestSeller: z.boolean().optional().default(false),
   status: z.enum(["Active", "Inactive"]).optional().default("Active"),
   order: z.coerce.number().optional().default(0),
+});
+
+const galleryImageSchema = z.object({
+  imageUrl: z.string().min(1).max(500),
+  publicId: z.string().max(300).optional().default(""),
+  alt: z.string().max(160).optional().default(""),
+  status: z.enum(["Active", "Inactive"]).optional().default("Active"),
+  order: z.coerce.number().optional(),
 });
 
 const userCreateSchema = z.object({
@@ -42,6 +51,7 @@ const partyOrderSchema = z.object({
 module.exports = {
   loginSchema,
   menuItemSchema,
+  galleryImageSchema,
   bookingSchema,
   partyOrderSchema,
   userCreateSchema,

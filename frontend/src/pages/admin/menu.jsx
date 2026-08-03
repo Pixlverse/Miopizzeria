@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiPlus, FiEdit2, FiArchive, FiRotateCcw, FiX, FiStar } from "react-icons/fi";
 import AdminLayout from "@/components/admin/AdminLayout";
+import ImageUploader from "@/components/admin/ImageUploader";
 import api from "@/utils/api";
+import { deleteImage } from "@/utils/upload";
 
 const TAG_OPTIONS = ["Vegetarian", "Spicy", "New", "Gluten-Free"];
 const emptyForm = {
@@ -10,6 +12,7 @@ const emptyForm = {
   price: "",
   description: "",
   imageUrl: "",
+  imagePublicId: "",
   tags: [],
   bestSeller: false,
   status: "Active",
@@ -29,6 +32,8 @@ export default function AdminMenu() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  // The image the item had when the modal opened — destroyed once a replacement saves.
+  const [originalPublicId, setOriginalPublicId] = useState("");
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -83,6 +88,7 @@ export default function AdminMenu() {
   const openAdd = () => {
     setEditingId(null);
     setForm({ ...emptyForm, category: categories[0]?.name || "" });
+    setOriginalPublicId("");
     setFormError("");
     setModalOpen(true);
   };
@@ -95,10 +101,12 @@ export default function AdminMenu() {
       price: item.price ?? "",
       description: item.description || "",
       imageUrl: item.imageUrl || "",
+      imagePublicId: item.imagePublicId || "",
       tags: item.tags || [],
       bestSeller: !!item.bestSeller,
       status: item.status || "Active",
     });
+    setOriginalPublicId(item.imagePublicId || "");
     setFormError("");
     setModalOpen(true);
   };
@@ -123,6 +131,7 @@ export default function AdminMenu() {
       price: Number(form.price),
       description: form.description,
       imageUrl: form.imageUrl,
+      imagePublicId: form.imagePublicId,
       tags: form.tags,
       bestSeller: form.bestSeller,
       status: form.status,
@@ -134,6 +143,10 @@ export default function AdminMenu() {
       } else {
         const { data } = await api.post("/menu-items", payload);
         setItems((it) => [...it, data]);
+      }
+      // The save stuck, so the image it replaced is now unreferenced.
+      if (originalPublicId && originalPublicId !== form.imagePublicId) {
+        deleteImage(originalPublicId);
       }
       setModalOpen(false);
     } catch (err) {
@@ -382,15 +395,15 @@ export default function AdminMenu() {
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Image URL (optional)</label>
-                <input
-                  className={field}
-                  placeholder="/images/prod-1.jpg or https://…"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                />
-              </div>
+              <ImageUploader
+                label="Image (optional)"
+                folder="menu"
+                value={form.imageUrl}
+                publicId={form.imagePublicId}
+                onChange={({ url, publicId }) =>
+                  setForm((f) => ({ ...f, imageUrl: url, imagePublicId: publicId }))
+                }
+              />
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Tags</label>

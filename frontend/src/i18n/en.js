@@ -150,6 +150,13 @@ const en = {
     title: "Order Online",
     lead: "Pick your favourite platform — we deliver across Doha through all the major apps.",
   },
+  orderModal: {
+    eyebrow: "Ready when you are",
+    title: "Order through your favourite app",
+    lead: "We take orders through the delivery apps — pick one to start your order.",
+    orderVia: "Order via",
+    close: "Close",
+  },
   ctaGallery: {
     title: "Step Inside MIO",
     lead: "Handcrafted pizzas, our dining room, and the little details that make every visit special — take a look.",

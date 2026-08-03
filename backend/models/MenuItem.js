@@ -7,6 +7,8 @@ const menuItemSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     description: { type: String, default: "", maxlength: 300 },
     imageUrl: { type: String, default: "" },
+    // Cloudinary public_id — kept so a replaced image can be destroyed.
+    imagePublicId: { type: String, default: "" },
     tags: [{ type: String, trim: true }],
     bestSeller: { type: Boolean, default: false },
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },

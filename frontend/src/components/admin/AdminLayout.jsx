@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
-import { FiGrid, FiCoffee, FiCalendar, FiGift, FiSettings, FiUsers, FiLogOut, FiExternalLink } from "react-icons/fi";
+import { FiGrid, FiCoffee, FiCalendar, FiGift, FiImage, FiSettings, FiUsers, FiLogOut, FiExternalLink } from "react-icons/fi";
 import Logo from "@/components/Logo";
 import { getToken, getUser, clearSession } from "@/utils/adminAuth";
 
@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/bookings", label: "Bookings", Icon: FiCalendar },
   { href: "/admin/party-orders", label: "Party Orders", Icon: FiGift },
   { href: "/admin/menu", label: "Menu", Icon: FiCoffee },
+  { href: "/admin/gallery", label: "Gallery", Icon: FiImage },
   { href: "/admin/settings", label: "Settings", Icon: FiSettings },
   { href: "/admin/users", label: "Users", Icon: FiUsers },
 ];
