@@ -150,7 +150,7 @@ export default function AdminSettings() {
 
         <Section title="Social links">
           <div className="grid gap-4 sm:grid-cols-3">
-            {["instagram", "facebook", "whatsapp"].map((k) => (
+            {["instagram", "facebook", "whatsapp", "snapchat", "tiktok"].map((k) => (
               <Labeled key={k} label={k}>
                 <input
                   className={field}

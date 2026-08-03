@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
 import PaperTexture from "./PaperTexture";
+import { useI18n } from "@/context/LocaleContext";
 
 const TILE_IMAGES = [
   "/images/prod-1.jpg",
@@ -16,22 +17,25 @@ const TILE_IMAGES = [
 ];
 
 // Deterministic U-shaped arc: tiles dip toward the centre, rise at the edges.
-const TILE_COUNT = 19;
+// Alternate tiles are hidden on mobile so the arc doesn't overcrowd.
+const TILE_COUNT = 13;
 const TILES = Array.from({ length: TILE_COUNT }, (_, i) => {
   const t = i / (TILE_COUNT - 1); // 0 → 1
   const dip = 1 - (2 * t - 1) ** 2; // 0 at edges, 1 at centre
   return {
     left: 3 + t * 94, // %
     top: 62 + dip * 34, // % — arc sits in the lower band, clear of the content
-    size: 46 + (i % 3) * 16, // px
+    size: 42 + (i % 3) * 12, // px
     rotate: (i % 2 === 0 ? -1 : 1) * (5 + (i % 3) * 4),
     delay: (i % 5) * 0.4,
     dur: 3 + (i % 3) * 0.7,
     img: TILE_IMAGES[i % TILE_IMAGES.length],
+    mobileHide: i % 2 === 1, // show ~half on small screens
   };
 });
 
 export default function CtaGallery() {
+  const { t } = useI18n();
   return (
     <section className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[480px]">
       {/* Deep rust backdrop */}
@@ -54,7 +58,7 @@ export default function CtaGallery() {
         {TILES.map((tile, i) => (
           <div
             key={i}
-            className="absolute"
+            className={`absolute ${tile.mobileHide ? "hidden sm:block" : ""}`}
             style={{ left: `${tile.left}%`, top: `${tile.top}%`, transform: "translate(-50%, -50%)" }}
           >
             <div
@@ -77,18 +81,17 @@ export default function CtaGallery() {
       {/* Content */}
       <div className="section relative z-10 flex w-full flex-col items-center text-center">
         <h2 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
-          Step Inside MIO
+          {t("ctaGallery.title")}
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-cream/85">
-          Wood-fired pizzas, our dining room, and the little details that make every
-          visit special — take a look.
+          {t("ctaGallery.lead")}
         </p>
         <Link
           href="/gallery"
           className="group mt-8 inline-flex items-center gap-2 rounded-full bg-cream px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-rust shadow-lg transition-all duration-300 ease-bounce hover:scale-105 hover:bg-white"
         >
-          View Gallery
-          <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+          {t("ctaGallery.cta")}
+          <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180" />
         </Link>
       </div>
     </section>

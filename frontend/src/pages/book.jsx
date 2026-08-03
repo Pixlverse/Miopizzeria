@@ -13,6 +13,8 @@ import {
   FiPlus,
 } from "react-icons/fi";
 import Layout from "@/components/Layout";
+import HeroBackdrop from "@/components/HeroBackdrop";
+import SectionBackdrop from "@/components/SectionBackdrop";
 import api from "@/utils/api";
 import { useSettings } from "@/hooks/useSettings";
 
@@ -163,44 +165,16 @@ export default function BookPage() {
 
   return (
     <Layout title="Book a Table">
-      <section className="relative min-h-[100svh] overflow-hidden pb-20 pt-28 md:pt-36">
-        {/* Even rust mesh gradient */}
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(120% 90% at 50% 6%, #C4623F 0%, #A6412C 46%, #7E3020 100%)",
-          }}
-        />
-        {/* Soft dot texture across the whole panel */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.14]"
-          style={{
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.7) 1.4px, transparent 1.5px)",
-            backgroundSize: "26px 26px",
-          }}
-        />
-        {/* Gentle glows for depth */}
-        <div aria-hidden className="pointer-events-none absolute -left-32 top-16 h-96 w-96 rounded-full bg-amber-300/10 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-rust-light/15 blur-3xl" />
-        {/* MIO watermark */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 grid h-[60vh] place-items-center">
-          <span className="select-none text-[30vw] font-black leading-none tracking-tighter text-cream/[0.05] md:text-[22vw]">
-            MIO
-          </span>
-        </div>
+      {/* Hero header — shared backdrop, no icon/line patterns */}
+      <section className="relative overflow-hidden pb-24 pt-28 md:pb-28 md:pt-36">
+        <HeroBackdrop />
 
-        <div className="section relative z-10">
-          <div className="text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-cream/70">
-              Reservations
-            </p>
-            <h1 className="mt-2 text-4xl font-semibold text-white md:text-h1">Book a Table</h1>
-            <p className="mt-2 font-display text-xl italic text-cream/85">
-              A few taps and your table is set
-            </p>
+        <div className="section relative z-10 text-center">
+          <p className="font-display text-xl italic text-cream/80">Reservations</p>
+          <h1 className="mt-2 text-5xl font-bold text-white md:text-6xl">Book a Table</h1>
+          <p className="mt-4 text-lg leading-relaxed text-cream/85">
+            A few taps and your table is set
+          </p>
             {status && (
               <p
                 className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold ring-1 ${
@@ -220,6 +194,21 @@ export default function BookPage() {
             )}
           </div>
 
+        {/* Curved transition into the light content */}
+        <svg
+          className="absolute bottom-0 left-0 z-10 w-full"
+          viewBox="0 0 1440 90"
+          preserveAspectRatio="none"
+          aria-hidden
+        >
+          <path d="M0,90 C360,10 1080,10 1440,90 Z" fill="#FDF5ED" />
+        </svg>
+      </section>
+
+      {/* Booking — calendar / stepper below the hero */}
+      <section className="relative overflow-hidden pb-20 pt-8">
+        <SectionBackdrop />
+        <div className="section relative z-10">
           {done ? (
             <SuccessCard
               date={date}
@@ -240,7 +229,7 @@ export default function BookPage() {
               }}
             />
           ) : (
-            <div className="mx-auto mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_360px]">
+            <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_360px]">
               {/* Interactive stepper */}
               <div className="rounded-3xl bg-white p-6 shadow-card md:p-8">
                 <Stepper step={step} setStep={setStep} date={date} time={time} />
@@ -647,9 +636,6 @@ function Ticket({ date, guests, guestsTouched, time, name, phone }) {
       <div className="overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-rust/10">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-rust to-rust-dark p-6">
-          <span className="pointer-events-none absolute -right-4 -top-6 select-none font-display text-8xl font-black leading-none text-white/10">
-            M
-          </span>
           <p className="font-display text-lg italic text-cream/80">Your reservation</p>
           <p className="text-2xl font-bold text-white">Mio Pizzeria</p>
         </div>
@@ -709,7 +695,7 @@ function SuccessCard({ date, guests, time, name, onReset }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="mx-auto mt-12 max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-card backdrop-blur"
+      className="mx-auto max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-card backdrop-blur"
     >
       <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-rust/15 text-rust">
         <FiCheck size={34} />

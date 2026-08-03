@@ -30,7 +30,9 @@ export default function Header() {
   // transparent over them (blending with the hero) until scrolled.
   const HERO_ROUTES = ["/", "/about", "/book", "/menu"];
   const onHero = HERO_ROUTES.includes(router.pathname);
-  const solid = scrolled || !onHero;
+  // Solid when scrolled, off a hero page, OR when the mobile drawer is open
+  // (otherwise the transparent header lets the hero bleed through the menu).
+  const solid = scrolled || !onHero || open;
 
   return (
     <header
@@ -88,8 +90,8 @@ export default function Header() {
 
       {/* Mobile drawer */}
       <div
-        className={`overflow-hidden bg-rust transition-[max-height] duration-300 md:hidden ${
-          open ? "max-h-72" : "max-h-0"
+        className={`overflow-hidden bg-rust shadow-xl transition-[max-height] duration-300 md:hidden ${
+          open ? "max-h-[85vh]" : "max-h-0"
         }`}
       >
         <ul className="flex flex-col gap-4 px-6 py-4">

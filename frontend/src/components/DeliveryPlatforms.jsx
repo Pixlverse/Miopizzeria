@@ -2,8 +2,12 @@ import Image from "next/image";
 import { FiArrowUpRight } from "react-icons/fi";
 import PaperTexture from "./PaperTexture";
 import { DELIVERY_PLATFORMS } from "@/utils/constants";
+import { useI18n } from "@/context/LocaleContext";
+import { useSettings } from "@/hooks/useSettings";
 
 export default function DeliveryPlatforms() {
+  const { t } = useI18n();
+  const settings = useSettings();
   return (
     // Premium rust panel with curved top/bottom edges and a faint gold lattice.
     <section id="order" className="relative overflow-hidden bg-rust py-16 md:py-24">
@@ -54,10 +58,10 @@ export default function DeliveryPlatforms() {
       </svg>
 
       <div className="section relative z-10 text-center">
-        <p className="font-display text-xl italic text-cream/90">Hungry already?</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white md:text-4xl">Order Online</h2>
+        <p className="font-display text-xl italic text-cream/90">{t("delivery.eyebrow")}</p>
+        <h2 className="mt-2 text-3xl font-semibold text-white md:text-4xl">{t("delivery.title")}</h2>
         <p className="mx-auto mt-3 max-w-xl text-cream/80">
-          Pick your favourite platform — we deliver across Doha through all the major apps.
+          {t("delivery.lead")}
         </p>
 
         {/* Platform tiles */}
@@ -65,7 +69,7 @@ export default function DeliveryPlatforms() {
           {DELIVERY_PLATFORMS.map((p) => (
             <a
               key={p.id}
-              href={p.url}
+              href={settings?.deliveryPlatforms?.[p.id] || p.url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Order via ${p.name}`}

@@ -1,10 +1,37 @@
 import Link from "next/link";
-import { FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaWhatsapp,
+  FaSnapchatGhost,
+  FaTiktok,
+} from "react-icons/fa";
 import Logo from "./Logo";
 import PaperTexture from "./PaperTexture";
 import { BRAND, NAV_LINKS, SOCIAL_LINKS } from "@/utils/constants";
+import { useSettings } from "@/hooks/useSettings";
+
+// Platform → icon/label. Order defines display order; only links with a value show.
+const SOCIAL_CONFIG = [
+  { key: "instagram", Icon: FaInstagram, label: "Instagram" },
+  { key: "facebook", Icon: FaFacebookF, label: "Facebook" },
+  { key: "whatsapp", Icon: FaWhatsapp, label: "WhatsApp" },
+  { key: "snapchat", Icon: FaSnapchatGhost, label: "Snapchat" },
+  { key: "tiktok", Icon: FaTiktok, label: "TikTok" },
+];
 
 export default function Footer() {
+  const settings = useSettings();
+
+  // Admin-editable settings win; fall back to static constants until loaded.
+  const links = settings?.socialLinks || SOCIAL_LINKS;
+  const socials = SOCIAL_CONFIG.map((c) => ({ ...c, href: links?.[c.key] })).filter(
+    (s) => s.href,
+  );
+  const phone = settings?.phone || BRAND.phone;
+  const email = settings?.email || BRAND.email;
+  const address = settings?.address || BRAND.address;
+
   return (
     <footer className="relative overflow-hidden bg-rust-dark text-cream/90">
       <PaperTexture opacity={0.35} blend="overlay" />
@@ -40,29 +67,29 @@ export default function Footer() {
         <div>
           <h4 className="mb-4 font-semibold text-cream">Contact</h4>
           <ul className="space-y-2 text-sm text-cream/70">
-            <li>{BRAND.address}</li>
-            <li>
-              <a href={`tel:${BRAND.phone}`} className="hover:text-white">
-                {BRAND.phone}
-              </a>
-            </li>
-            <li>
-              <a href={`mailto:${BRAND.email}`} className="hover:text-white">
-                {BRAND.email}
-              </a>
-            </li>
+            <li>{address}</li>
+            {phone && (
+              <li>
+                <a href={`tel:${phone}`} className="hover:text-white">
+                  {phone}
+                </a>
+              </li>
+            )}
+            {email && (
+              <li>
+                <a href={`mailto:${email}`} className="hover:text-white">
+                  {email}
+                </a>
+              </li>
+            )}
           </ul>
         </div>
 
         {/* Social */}
         <div>
           <h4 className="mb-4 font-semibold text-cream">Follow Us</h4>
-          <div className="flex gap-3">
-            {[
-              { href: SOCIAL_LINKS.instagram, Icon: FaInstagram, label: "Instagram" },
-              { href: SOCIAL_LINKS.facebook, Icon: FaFacebookF, label: "Facebook" },
-              { href: SOCIAL_LINKS.whatsapp, Icon: FaWhatsapp, label: "WhatsApp" },
-            ].map(({ href, Icon, label }) => (
+          <div className="flex flex-wrap gap-3">
+            {socials.map(({ href, Icon, label }) => (
               <a
                 key={label}
                 href={href}

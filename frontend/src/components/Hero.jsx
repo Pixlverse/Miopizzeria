@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
 import { FaPizzaSlice } from "react-icons/fa";
-import { MdDeliveryDining } from "react-icons/md";
 import { useI18n } from "@/context/LocaleContext";
 import { DELIVERY_PLATFORMS } from "@/utils/constants";
 
@@ -12,7 +11,7 @@ import { DELIVERY_PLATFORMS } from "@/utils/constants";
  * pizza ring and a trust strip. Superseded by the image-led hero below.
  * (The earlier 60/40 split hero remains available in git history.)
  * ---------------------------------------------------------------------------
- * const FEATURES = ["Wood-Fired in 90s", "Delivered Across Doha", "48h Proofed Dough"];
+ * const FEATURES = ["Fresh Daily", "Delivered Across Doha", "48h Proofed Dough"];
  *
  * export default function Hero() {
  *   const { t } = useI18n();
@@ -56,7 +55,7 @@ export default function Hero() {
       {/* Full-bleed food photography (mirrored in RTL so copy sits over the void) */}
       <Image
         src="/images/mainslider.png"
-        alt="Wood-fired pepperoni pizza on a plate with tomatoes, olive oil and fresh basil"
+        alt="Pepperoni pizza on a plate with tomatoes, olive oil and fresh basil"
         fill
         priority
         sizes="100vw"
@@ -123,19 +122,8 @@ export default function Hero() {
             </Link>
           </div>
 
-          {/* Delivery + platforms bar */}
+          {/* Platforms bar */}
           <div className="mt-10 inline-flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl border border-cream/20 bg-black/25 px-5 py-3 backdrop-blur-md">
-            <span className="flex items-center gap-3 text-cream">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-rust text-cream">
-                <MdDeliveryDining size={20} />
-              </span>
-              <span className="text-xs font-bold uppercase leading-tight tracking-wide">
-                {t("hero.deliveryTime")}
-              </span>
-            </span>
-
-            <span className="hidden h-8 w-px bg-cream/20 sm:block" aria-hidden="true" />
-
             <span className="flex items-center gap-3">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-cream/70">
                 {t("hero.alsoOn")}

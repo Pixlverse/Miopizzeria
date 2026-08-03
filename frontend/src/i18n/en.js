@@ -14,15 +14,21 @@ const en = {
   hero: {
     title: "Pizza Cravings?",
     subtitle: "Get It Delivered Hot & Fresh!",
-    description: "Handcrafted, wood-fired and delivered fast across Doha.",
+    description: "Handcrafted and delivered fast across Doha.",
     cta: "Order Your Pizza Now",
     eyebrow: "Authentic Neapolitan",
     headline1: "Hot Pizza.",
     headline2: "Real Passion.",
     ctaOrder: "Order Now",
     ctaMenu: "Explore Menu",
-    deliveryTime: "Delivery in 30–45 min",
     alsoOn: "Also available on",
+  },
+  menu: {
+    title: "Our Menu",
+    subtitle: "Premium Italian, crafted by hand",
+    all: "All",
+    loading: "Loading menu…",
+    empty: "No items in this category yet.",
   },
   about: {
     eyebrow: "Premium Italian pizza, made in Doha",
@@ -31,8 +37,8 @@ const en = {
     body: "Handcrafted Italian pizzas baked fresh daily in Doha. We pair time-honoured Neapolitan technique with premium ingredients to bring authentic Italian flavour to the heart of the city — then deliver it hot and fresh to your door.",
     pillars: [
       {
-        title: "Wood-Fired Oven",
-        text: "Baked at 450°C in a traditional wood-fired oven for a blistered, airy Neapolitan crust.",
+        title: "Baked Fresh Daily",
+        text: "Baked fresh to order for a blistered, airy Neapolitan-style crust.",
       },
       {
         title: "Premium Ingredients",
@@ -73,7 +79,7 @@ const en = {
   events: {
     eyebrow: "Catering & private bookings",
     title: "Events & Party Orders",
-    lead: "From F1 watch parties to birthdays and corporate gatherings — we bring Mio’s wood-fired pizza to your table. Tell us what you need and we’ll handle the rest.",
+    lead: "From F1 watch parties to birthdays and corporate gatherings — we bring Mio’s pizza to your table. Tell us what you need and we’ll handle the rest.",
     types: ["F1 & Watch Parties", "Birthdays & Family", "Corporate & Office"],
     form: {
       title: "Request a party order",
@@ -116,9 +122,45 @@ const en = {
   location: {
     eyebrow: "Come say hi",
     title: "Visit Us",
+    welcome: "We'd love to welcome you!",
+    tagline: "Authentic Italian. Made with Love.",
     hoursTitle: "Opening hours",
     directions: "Get Directions",
-    call: "Call branch",
+    call: "Call Us",
+    openInMaps: "Open in Maps",
+    closed: "Closed",
+    days: {
+      monday: "Monday",
+      tuesday: "Tuesday",
+      wednesday: "Wednesday",
+      thursday: "Thursday",
+      friday: "Friday",
+      saturday: "Saturday",
+      sunday: "Sunday",
+    },
+    features: {
+      parking: "Easy Parking",
+      ambience: "Cozy Ambience",
+      cuisine: "Authentic Italian Cuisine",
+      loved: "Loved by Our Guests",
+    },
+  },
+  delivery: {
+    eyebrow: "Hungry already?",
+    title: "Order Online",
+    lead: "Pick your favourite platform — we deliver across Doha through all the major apps.",
+  },
+  ctaGallery: {
+    title: "Step Inside MIO",
+    lead: "Handcrafted pizzas, our dining room, and the little details that make every visit special — take a look.",
+    cta: "View Gallery",
+  },
+  contact: {
+    eyebrow: "Come say hi",
+    title: "Get in Touch",
+    lead: "Questions, comments, heat tolerance — we'd love to hear from you! Drop by, call, or message us anytime.",
+    findUs: "Find us",
+    faqs: "FAQs",
   },
   reviews: {
     eyebrow: "Loved in Doha",

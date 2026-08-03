@@ -11,7 +11,7 @@ export const BRAND = {
   address:
     "Dafna Park, Unit 24, Building 55, Street 841, Zone 63 — Opp. Marriott Marquis City Center, Behind Pullman Hotels (Excellence Tower), Doha, Qatar",
   about:
-    "Born from a love of Naples — pizza made with 00 flour, tangy San Marzano tomatoes and creamy mozzarella, baked to perfection in a wood-fired oven here in Doha.",
+    "Born from a love of Naples — pizza made with 00 flour, tangy San Marzano tomatoes and creamy mozzarella, baked fresh to perfection here in Doha.",
 };
 
 // `key` maps to the i18n dictionary (nav.<key>); `label` is the English fallback.
@@ -69,6 +69,8 @@ export const SOCIAL_LINKS = {
   instagram: "https://instagram.com",
   facebook: "https://facebook.com",
   whatsapp: "https://wa.me/9740000000",
+  snapchat: "",
+  tiktok: "",
 };
 
 export const HOURS = [
@@ -143,7 +145,7 @@ export const HOME_OFFER = {
 // `origin` keeps that product in view while the rest crops away.
 export const POPULAR_CATEGORIES = [
   { id: "pizza", nameKey: "pizza", image: "/images/cat1pizza.png", href: "/menu?cat=pizza" },
-  { id: "beverages", nameKey: "beverages", image: "/images/cat2-beverages.png", href: "/menu?cat=coolers", zoom: 1.5, origin: "82% 58%" },
+  { id: "beverages", nameKey: "beverages", image: "/images/cat2-beverages.png", href: "/menu?cat=coolers", zoom: 1.25, origin: "right", pos: "object-right" },
   { id: "salads", nameKey: "salads", image: "/images/cat3salads.jpg", href: "/menu?cat=salads" },
   { id: "sandwiches", nameKey: "sandwiches", image: "/images/cat4sandwich.png", href: "/menu?cat=sandwich" },
 ];
@@ -165,7 +167,7 @@ export const MOCK_FEATURED = [
     name: "Pepperoni Classico",
     category: "Classic",
     price: 45,
-    description: "Double pepperoni, mozzarella, oregano on a wood-fired crust.",
+    description: "Double pepperoni, mozzarella, oregano on a hand-stretched crust.",
     imageUrl: "/images/prod-2.jpg",
     tags: ["Spicy"],
   },
@@ -290,7 +292,7 @@ export const MENU_CATEGORIES = [
     name: "Starters",
     icon: "/images/starters.png",
     items: [
-      { id: "garlic-bread", name: "Garlic Bread", price: 18, image: "/images/prod-3.jpg", description: "Wood-fired bread, garlic butter, herbs.", tags: ["Vegetarian"], bestSeller: true },
+      { id: "garlic-bread", name: "Garlic Bread", price: 18, image: "/images/prod-3.jpg", description: "Oven-baked bread, garlic butter, herbs.", tags: ["Vegetarian"], bestSeller: true },
       { id: "bruschetta", name: "Bruschetta", price: 22, image: "/images/prod-4.jpg", description: "Toasted bread, tomato, basil, EVOO.", tags: ["Vegetarian"] },
       { id: "arancini", name: "Arancini", price: 26, image: "/images/prod-5.jpg", description: "Crispy risotto balls, mozzarella centre." },
     ],

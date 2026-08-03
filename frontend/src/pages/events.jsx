@@ -1,20 +1,10 @@
 import Image from "next/image";
 import { FiClipboard, FiTruck, FiCalendar } from "react-icons/fi";
-import { GiPartyPopper, GiBalloons, GiCakeSlice, GiPartyHat, GiWineGlass, GiPartyFlags } from "react-icons/gi";
 import Layout from "@/components/Layout";
 import SectionBackdrop from "@/components/SectionBackdrop";
+import HeroBackdrop from "@/components/HeroBackdrop";
 import PartyOrderForm from "@/components/PartyOrderForm";
 import { useI18n } from "@/context/LocaleContext";
-
-// Floating celebration icons across the hero.
-const FLOATERS = [
-  { Icon: GiPartyPopper, cls: "left-[8%] top-[24%] h-16 w-16" },
-  { Icon: GiBalloons, cls: "right-[9%] top-[20%] h-14 w-14" },
-  { Icon: GiCakeSlice, cls: "left-[15%] bottom-[18%] h-12 w-12" },
-  { Icon: GiWineGlass, cls: "right-[15%] bottom-[24%] h-14 w-14" },
-  { Icon: GiPartyHat, cls: "left-[42%] top-[10%] hidden h-10 w-10 md:block" },
-  { Icon: GiPartyFlags, cls: "right-[38%] bottom-[12%] hidden h-12 w-12 md:block" },
-];
 
 // Dummy showcase of past events (swap for real photos/details later).
 const PAST_EVENTS = [
@@ -23,7 +13,7 @@ const PAST_EVENTS = [
     type: "F1 & Watch Parties",
     guests: "60 guests",
     img: "/images/rest1.jpg",
-    desc: "A full-house race night with live screens and endless wood-fired pizza.",
+    desc: "A full-house race night with live screens and endless fresh pizza.",
   },
   {
     title: "TechCorp Launch Night",
@@ -60,40 +50,9 @@ export default function EventsPage() {
 
   return (
     <Layout title={t("events.title")}>
-      {/* Rust hero header — matches the site's other hero sections */}
+      {/* Rust hero header — shared backdrop, no icon/line patterns */}
       <section className="relative overflow-hidden pb-24 pt-28 md:pb-28 md:pt-36">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(90% 120% at 15% 10%, #C4623F 0%, #A6412C 45%, #5E2A20 100%)",
-          }}
-        />
-        {/* Diagonal-stripe texture, masked to fade at the edges */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(-45deg, rgba(255,255,255,0.6) 0, rgba(255,255,255,0.6) 1px, transparent 1px, transparent 18px)",
-            maskImage: "radial-gradient(78% 78% at 50% 40%, #000 42%, transparent 100%)",
-            WebkitMaskImage: "radial-gradient(78% 78% at 50% 40%, #000 42%, transparent 100%)",
-          }}
-        />
-        {/* Glows */}
-        <div aria-hidden className="pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-amber-300/15 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-rust-light/20 blur-3xl" />
-        {/* Floating celebration icons */}
-        {FLOATERS.map(({ Icon, cls }, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className={`pointer-events-none absolute grid place-items-center rounded-2xl bg-white/[0.04] text-cream/30 ring-1 ring-white/[0.06] ${cls}`}
-          >
-            <Icon className="h-[42%] w-[42%]" />
-          </span>
-        ))}
+        <HeroBackdrop />
 
         <div className="section relative z-10 mx-auto max-w-3xl text-center">
           <p className="font-display text-xl italic text-cream/80">{t("events.eyebrow")}</p>
@@ -140,7 +99,7 @@ export default function EventsPage() {
 
         <div className="section relative z-10">
           {/* Events we've done */}
-          <div className="mt-16">
+          <div>
             <div className="mb-8 text-center">
               <p className="font-display text-lg italic text-rust-light">Recent celebrations</p>
               <h2 className="mt-1 text-3xl font-bold text-rust md:text-4xl">Events We've Done</h2>

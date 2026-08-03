@@ -38,7 +38,7 @@ export default function PopularCategories() {
                       alt={name}
                       fill
                       sizes="(max-width: 768px) 92vw, 46vw"
-                      className="object-cover"
+                      className={`object-cover ${cat.pos || ""}`}
                       style={
                         cat.zoom
                           ? { transform: `scale(${cat.zoom})`, transformOrigin: cat.origin || "center" }

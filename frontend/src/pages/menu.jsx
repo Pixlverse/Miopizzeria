@@ -7,43 +7,83 @@ import { GiSandwich, GiCoffeeCup, GiSodaCan } from "react-icons/gi";
 import Layout from "@/components/Layout";
 import MenuCard from "@/components/MenuCard";
 import SectionBackdrop from "@/components/SectionBackdrop";
-import { MENU_CATEGORIES } from "@/utils/constants";
+import api from "@/utils/api";
+import { useI18n } from "@/context/LocaleContext";
 
-const FILTERS = [{ id: "all", name: "All" }, ...MENU_CATEGORIES];
-
-// Line-art icon per filter (falls back to the plate/cloche for anything new).
-const FILTER_ICONS = {
-  all: FiGrid,
-  pizza: FaPizzaSlice,
-  sandwich: GiSandwich,
-  coffee: GiCoffeeCup,
-  tea: FaMugHot,
-  coolers: GiSodaCan,
-  starters: FaConciergeBell,
-  salads: FaLeaf,
-};
+// Pick a line-art icon from the category name (falls back to the cloche).
+function catIcon(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("pizza")) return FaPizzaSlice;
+  if (n.includes("sandwich")) return GiSandwich;
+  if (n.includes("coffee")) return GiCoffeeCup;
+  if (n.includes("tea")) return FaMugHot;
+  if (n.includes("cooler") || n.includes("refresh")) return GiSodaCan;
+  if (n.includes("salad") || n.includes("gluten")) return FaLeaf;
+  if (n.includes("breakfast")) return FaMugHot;
+  return FaConciergeBell;
+}
 
 export default function MenuPage() {
+  const { t } = useI18n();
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
   const [active, setActive] = useState("all");
+  const [loading, setLoading] = useState(true);
 
-  // Pre-select a category when arriving via /menu?cat=<id> (e.g. from the home
-  // "Popular Categories" tiles).
+  // Fetch categories + menu items from the backend (admin-managed).
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const [cats, its] = await Promise.all([
+          api.get("/categories"),
+          api.get("/menu-items"),
+        ]);
+        if (!live) return;
+        setCategories(Array.isArray(cats.data) ? cats.data : []);
+        setItems(Array.isArray(its.data) ? its.data : []);
+      } catch {
+        /* leave empty on failure */
+      } finally {
+        if (live) setLoading(false);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  // Pre-select a category when arriving via /menu?cat=<name> (case-insensitive).
   useEffect(() => {
     const { cat } = router.query;
-    if (cat && MENU_CATEGORIES.some((c) => c.id === cat)) setActive(cat);
-  }, [router.query]);
+    if (!cat || !categories.length) return;
+    const q = String(cat).toLowerCase();
+    const match = categories.find(
+      (c) => c.name.toLowerCase() === q || c.name.toLowerCase().startsWith(q),
+    );
+    if (match) setActive(match.name);
+  }, [router.query, categories]);
 
-  const items = useMemo(() => {
-    const cats =
-      active === "all"
-        ? MENU_CATEGORIES
-        : MENU_CATEGORIES.filter((c) => c.id === active);
-    return cats.flatMap((c) => c.items.map((it) => ({ ...it, catId: c.id })));
-  }, [active]);
+  const filters = useMemo(
+    () => [
+      { name: "all", label: t("menu.all") },
+      ...categories.map((c) => ({ name: c.name, label: c.name })),
+    ],
+    [categories, t],
+  );
+
+  const visible = useMemo(
+    () => (active === "all" ? items : items.filter((it) => it.category === active)),
+    [active, items],
+  );
+
+  // Split the heading so the first word is white and the rest is the accent italic.
+  const heading = t("menu.title");
+  const [headWord, ...headRest] = heading.split(" ");
 
   return (
-    <Layout title="Menu">
+    <Layout title={t("nav.menu")}>
       {/* Full-bleed food hero — copy on the left, the spread on the right */}
       <section className="relative flex min-h-[52vh] items-center overflow-hidden bg-[#5E2A20] pt-24">
         <Image
@@ -54,7 +94,6 @@ export default function MenuPage() {
           sizes="100vw"
           className="object-cover object-right rtl:-scale-x-100"
         />
-        {/* Left scrim for copy contrast (flips side in RTL) */}
         <div
           aria-hidden
           className="absolute inset-0 rtl:hidden"
@@ -74,21 +113,22 @@ export default function MenuPage() {
 
         <div className="section relative z-10 w-full pb-16">
           <div className="max-w-xl">
-            <p className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.28em] text-cream/80">
-              Top Foods
-              <span className="h-px w-10 bg-rust-light" aria-hidden="true" />
-            </p>
-            <h1 className="mt-2 leading-[0.95]">
-              <span className="font-display text-6xl font-semibold text-white sm:text-7xl">Our </span>
-              <span className="font-display text-6xl italic text-rust-light sm:text-7xl">Menu</span>
+            <h1 className="leading-[0.95]">
+              <span className="font-display text-6xl font-semibold text-white sm:text-7xl">
+                {headWord}{" "}
+              </span>
+              {headRest.length > 0 && (
+                <span className="font-display text-6xl italic text-rust-light sm:text-7xl">
+                  {headRest.join(" ")}
+                </span>
+              )}
             </h1>
             <p className="mt-3 font-display text-xl italic text-cream/90 sm:text-2xl">
-              Premium Italian, crafted by hand
+              {t("menu.subtitle")}
             </p>
           </div>
         </div>
 
-        {/* Curved transition into the light content */}
         <svg
           className="absolute bottom-0 left-0 z-10 w-full"
           viewBox="0 0 1440 90"
@@ -99,10 +139,9 @@ export default function MenuPage() {
         </svg>
       </section>
 
-      {/* Light content — filter pills + cards */}
+      {/* Light content — filter + cards */}
       <section className="relative overflow-hidden pb-20 pt-8">
         <SectionBackdrop />
-        {/* Decorative dot texture + warm glows so cards don't float on a flat wash */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0 opacity-60"
@@ -112,48 +151,51 @@ export default function MenuPage() {
             backgroundSize: "24px 24px",
           }}
         />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-40 top-24 z-0 h-96 w-96 rounded-full bg-rust-light/20 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-40 top-1/2 z-0 h-96 w-96 rounded-full bg-rust/15 blur-3xl"
-        />
 
         <div className="section relative z-10">
-          {/* Filter — segmented pill control (scrolls horizontally if needed) */}
-          <div className="flex justify-center">
-            <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white/95 p-1.5 shadow-card ring-1 ring-rust/10 backdrop-blur [&::-webkit-scrollbar]:hidden">
-              {FILTERS.map((f) => {
-                const isActive = active === f.id;
-                const Icon = FILTER_ICONS[f.id] || FaConciergeBell;
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setActive(f.id)}
-                    aria-pressed={isActive}
-                    className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
-                      isActive
-                        ? "bg-rust text-white shadow-md"
-                        : "text-rust/70 hover:bg-rust/5 hover:text-rust"
-                    }`}
-                  >
-                    <Icon size={17} className="shrink-0" />
-                    <span className="whitespace-nowrap">{f.name}</span>
-                  </button>
-                );
-              })}
+          {/* Filter — segmented pill control */}
+          {filters.length > 1 && (
+            <div className="flex justify-center">
+              <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white/95 p-1.5 shadow-card ring-1 ring-rust/10 backdrop-blur [&::-webkit-scrollbar]:hidden">
+                {filters.map((f) => {
+                  const isActive = active === f.name;
+                  const Icon = f.name === "all" ? FiGrid : catIcon(f.name);
+                  return (
+                    <button
+                      key={f.name}
+                      type="button"
+                      onClick={() => setActive(f.name)}
+                      aria-pressed={isActive}
+                      className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                        isActive
+                          ? "bg-rust text-white shadow-md"
+                          : "text-rust/70 hover:bg-rust/5 hover:text-rust"
+                      }`}
+                    >
+                      <Icon size={17} className="shrink-0" />
+                      <span className="whitespace-nowrap">{f.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Cards */}
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map((item, i) => (
-              <MenuCard key={`${item.catId}-${item.id}`} item={item} index={i} />
-            ))}
-          </div>
+          {/* Cards / states */}
+          {loading ? (
+            <div className="mt-16 grid place-items-center text-muted">
+              <span className="h-10 w-10 animate-spin rounded-full border-2 border-rust/30 border-t-rust" />
+              <p className="mt-4 text-sm font-medium">{t("menu.loading")}</p>
+            </div>
+          ) : visible.length === 0 ? (
+            <p className="mt-16 text-center text-muted">{t("menu.empty")}</p>
+          ) : (
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {visible.map((item, i) => (
+                <MenuCard key={item._id || `${item.category}-${i}`} item={item} index={i} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

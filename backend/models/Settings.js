@@ -24,6 +24,8 @@ const settingsSchema = new mongoose.Schema(
       instagram: String,
       facebook: String,
       whatsapp: String,
+      snapchat: String,
+      tiktok: String,
     },
     deliveryPlatforms: {
       snoonu: String,

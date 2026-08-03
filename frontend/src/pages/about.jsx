@@ -18,7 +18,7 @@ import PaperTexture from "@/components/PaperTexture";
 
 const STORY_FEATURES = [
   { Icon: FaLeaf, label: "Finest Italian Ingredients" },
-  { Icon: FaFire, label: "Wood-Fired Perfection" },
+  { Icon: FaFire, label: "Baked to Perfection" },
   { Icon: FaHeart, label: "Made with Passion & Care" },
 ];
 
@@ -27,7 +27,7 @@ const INGREDIENTS = [
   { Icon: GiHerbsBundle, label: "00 Flour Dough" },
   { Icon: GiTomato, label: "San Marzano Tomatoes" },
   { Icon: GiCheeseWedge, label: "Creamy Mozzarella" },
-  { Icon: FaFire, label: "Wood-Fired Oven" },
+  { Icon: FaFire, label: "Baked Fresh Daily" },
   { Icon: GiBellPepper, label: "Fresh Basil" },
 ];
 
@@ -203,8 +203,8 @@ export default function AboutPage() {
               <p className="mt-4 leading-relaxed text-cream/85">
                 Naples, the birthplace of Neapolitan pizza, inspires everything we do. From dough
                 made with 00 flour to tangy San Marzano tomatoes and creamy mozzarella, each
-                ingredient is carefully chosen to ensure authenticity — baked to perfection in a
-                wood-fired oven for a soft, airy crust with just the right char.
+                ingredient is carefully chosen to ensure authenticity — baked fresh to perfection
+                for a soft, airy crust with just the right char.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
@@ -259,7 +259,7 @@ export default function AboutPage() {
             <div className="absolute inset-[22%] overflow-hidden rounded-full shadow-card ring-4 ring-white">
               <Image
                 src="/images/rest2.jpg"
-                alt="Wood-fired pizza fresh from the oven"
+                alt="Freshly baked pizza from the oven"
                 fill
                 sizes="(max-width: 1024px) 60vw, 30vw"
                 className="object-cover"

@@ -200,7 +200,7 @@ export default function ScrollHero() {
             Get It Delivered Hot &amp; Fresh!
           </h2>
           <p className="mt-4 max-w-sm text-cream/85">
-            Handcrafted, wood-fired and delivered fast across Doha.
+            Handcrafted and delivered fast across Doha.
           </p>
           <Link
             href="/#order"
