@@ -1,9 +1,11 @@
 import Image from "next/image";
 import { FiArrowUpRight } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import PaperTexture from "./PaperTexture";
 import { DELIVERY_PLATFORMS } from "@/utils/constants";
 import { useI18n } from "@/context/LocaleContext";
 import { useSettings } from "@/hooks/useSettings";
+import { whatsappLink } from "@/utils/whatsapp";
 
 export default function DeliveryPlatforms() {
   const { t } = useI18n();
@@ -65,7 +67,7 @@ export default function DeliveryPlatforms() {
         </p>
 
         {/* Platform tiles */}
-        <div className="mx-auto mt-10 grid max-w-3xl grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-4 sm:gap-6 md:grid-cols-5">
           {DELIVERY_PLATFORMS.map((p) => (
             <a
               key={p.id}
@@ -104,6 +106,30 @@ export default function DeliveryPlatforms() {
               </span>
             </a>
           ))}
+
+          {/* Collect in person — goes to WhatsApp rather than a delivery app.
+              Full width on mobile so it doesn't sit alone in a half-width cell. */}
+          <a
+            href={whatsappLink(settings?.socialLinks?.whatsapp, t("pickup.message"))}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("pickup.label")}
+            className="group relative col-span-2 flex flex-col items-center gap-3 overflow-hidden rounded-3xl bg-white p-5 shadow-lg ring-1 ring-black/5 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl md:col-span-1"
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-6 -bottom-5 h-14 rounded-full bg-[#25D366] opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-40"
+            />
+            <span className="relative grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-[#25D366] text-white md:h-24 md:w-24">
+              <FaWhatsapp size={44} />
+            </span>
+            <span className="relative flex items-center gap-1.5 font-semibold text-ink">
+              {t("pickup.label")}
+              <FiArrowUpRight
+                className="-translate-x-1 text-[#25D366] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+              />
+            </span>
+          </a>
         </div>
       </div>
     </section>

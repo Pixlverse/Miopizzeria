@@ -29,6 +29,8 @@ const en = {
     all: "All",
     loading: "Loading menu…",
     empty: "No items in this category yet.",
+    scrollLeft: "Scroll categories left",
+    scrollRight: "Scroll categories right",
   },
   about: {
     eyebrow: "Premium Italian pizza, made in Doha",
@@ -148,7 +150,14 @@ const en = {
   delivery: {
     eyebrow: "Hungry already?",
     title: "Order Online",
-    lead: "Pick your favourite platform — we deliver across Doha through all the major apps.",
+    lead: "Pick your favourite platform — we deliver across Doha, or collect your order from the store.",
+  },
+  pickup: {
+    label: "Pickup from Store",
+    // Shown only in the product modal, where the row is wide enough for it.
+    sub: "Order on WhatsApp",
+    message: "Hi Mio Pizzeria! I'd like to place an order for pickup.",
+    messageItem: "Hi Mio Pizzeria! I'd like to order this for pickup:",
   },
   orderModal: {
     eyebrow: "Ready when you are",

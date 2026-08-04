@@ -3,10 +3,12 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiX, FiArrowUpRight } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { DELIVERY_PLATFORMS } from "@/utils/constants";
 import { useI18n } from "@/context/LocaleContext";
 import { useSettings } from "@/hooks/useSettings";
 import { event as gaEvent } from "@/utils/gtag";
+import { whatsappLink } from "@/utils/whatsapp";
 
 /**
  * Hands the guest off to a delivery app. Ordering happens on the platforms, so
@@ -47,6 +49,12 @@ export default function OrderModal({ item, open, onClose }) {
     ...p,
     href: settings?.deliveryPlatforms?.[p.id] || p.url,
   }));
+
+  // Prefill the chat with the dish they tapped, so staff know what's being collected.
+  const pickupHref = whatsappLink(
+    settings?.socialLinks?.whatsapp,
+    item?.name ? `${t("pickup.messageItem")} ${item.name}` : t("pickup.message")
+  );
 
   return createPortal(
     <AnimatePresence>
@@ -131,6 +139,40 @@ export default function OrderModal({ item, open, onClose }) {
                   </span>
                 </a>
               ))}
+
+              {/* Collect in person — WhatsApp instead of a delivery app. */}
+              <a
+                href={pickupHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  gaEvent("order_intent", {
+                    item_name: item?.name,
+                    platform: "Pickup (WhatsApp)",
+                    value: item?.price,
+                  })
+                }
+                aria-label={t("pickup.label")}
+                className="group relative col-span-2 flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-white p-3.5 shadow-md ring-1 ring-black/5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-rust"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-10 -bottom-4 h-12 rounded-full bg-[#25D366] opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-40"
+                />
+                <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#25D366] text-white">
+                  <FaWhatsapp size={22} />
+                </span>
+                <span className="relative flex flex-col items-start">
+                  <span className="flex items-center gap-1 text-sm font-semibold text-ink">
+                    {t("pickup.label")}
+                    <FiArrowUpRight
+                      size={13}
+                      className="-translate-x-1 text-[#25D366] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:rotate-[-90deg]"
+                    />
+                  </span>
+                  <span className="text-[11px] text-muted">{t("pickup.sub")}</span>
+                </span>
+              </a>
             </div>
           </motion.div>
         </motion.div>

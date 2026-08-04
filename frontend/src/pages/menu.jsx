@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FiGrid } from "react-icons/fi";
+import { FiGrid, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { FaPizzaSlice, FaMugHot, FaConciergeBell, FaLeaf, FaIceCream } from "react-icons/fa";
 import { GiSandwich, GiCoffeeCup, GiSodaCan } from "react-icons/gi";
 import Layout from "@/components/Layout";
@@ -32,7 +32,7 @@ function catIcon(name) {
 }
 
 export default function MenuPage() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
@@ -85,6 +85,60 @@ export default function MenuPage() {
     () => (active === "all" ? items : items.filter((it) => it.category === active)),
     [active, items],
   );
+
+  /* ---- Category strip: arrow buttons, shown only when it overflows ---- */
+  const strip = useRef(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  // Under the current scroll spec, RTL scrollLeft runs from -(max) up to 0,
+  // so the reachable range flips while "visually left" stays the negative end.
+  const syncArrows = useCallback(() => {
+    const el = strip.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    if (max <= 1) {
+      setCanLeft(false);
+      setCanRight(false);
+      return;
+    }
+    const rtl = dir === "rtl";
+    setCanLeft(el.scrollLeft > (rtl ? -max : 0) + 1);
+    setCanRight(el.scrollLeft < (rtl ? 0 : max) - 1);
+  }, [dir]);
+
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return undefined;
+    syncArrows();
+    el.addEventListener("scroll", syncArrows, { passive: true });
+    window.addEventListener("resize", syncArrows);
+    return () => {
+      el.removeEventListener("scroll", syncArrows);
+      window.removeEventListener("resize", syncArrows);
+    };
+  }, [syncArrows, filters.length]);
+
+  // Negative always moves the view left on screen, in both text directions.
+  const nudge = (sign) => {
+    const el = strip.current;
+    if (el) el.scrollBy({ left: sign * el.clientWidth * 0.7, behavior: "smooth" });
+  };
+
+  // Keep the selected chip visible — it can sit off-screen after a ?cat= deep
+  // link, or once the list is long enough to scroll. Done by hand rather than
+  // with scrollIntoView, which also scrolls every scrollable ancestor and drags
+  // the whole page sideways. Measuring from centres works in RTL too.
+  useEffect(() => {
+    const el = strip.current;
+    const chip = el?.querySelector('[data-active="true"]');
+    if (!el || !chip) return;
+    const stripBox = el.getBoundingClientRect();
+    const chipBox = chip.getBoundingClientRect();
+    const delta =
+      chipBox.left + chipBox.width / 2 - (stripBox.left + stripBox.width / 2);
+    if (Math.abs(delta) > 1) el.scrollBy({ left: delta, behavior: "smooth" });
+  }, [active, filters.length]);
 
   // Split the heading so the first word is white and the rest is the accent italic.
   const heading = t("menu.title");
@@ -163,29 +217,60 @@ export default function MenuPage() {
         <div className="section relative z-10">
           {/* Filter — segmented pill control */}
           {filters.length > 1 && (
-            <div className="flex justify-center">
-              <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white/95 p-1.5 shadow-card ring-1 ring-rust/10 backdrop-blur [&::-webkit-scrollbar]:hidden">
-                {filters.map((f) => {
-                  const isActive = active === f.name;
-                  const Icon = f.name === "all" ? FiGrid : catIcon(f.name);
-                  return (
-                    <button
-                      key={f.name}
-                      type="button"
-                      onClick={() => setActive(f.name)}
-                      aria-pressed={isActive}
-                      className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
-                        isActive
-                          ? "bg-rust text-white shadow-md"
-                          : "text-rust/70 hover:bg-rust/5 hover:text-rust"
-                      }`}
-                    >
-                      <Icon size={17} className="shrink-0" />
-                      <span className="whitespace-nowrap">{f.label}</span>
-                    </button>
-                  );
-                })}
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+              {/* Kept mounted and faded out so the strip doesn't shift at the ends. */}
+              <button
+                type="button"
+                onClick={() => nudge(-1)}
+                aria-label={t("menu.scrollLeft")}
+                tabIndex={canLeft ? 0 : -1}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/95 text-rust shadow-card ring-1 ring-rust/10 transition-opacity duration-300 hover:bg-rust/5 sm:h-10 sm:w-10 ${
+                  canLeft ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+              >
+                <FiChevronLeft size={18} />
+              </button>
+
+              <div className="min-w-0 max-w-full">
+                <div
+                  ref={strip}
+                  className="flex items-center gap-1 overflow-x-auto rounded-full bg-white/95 p-1.5 shadow-card ring-1 ring-rust/10 backdrop-blur [&::-webkit-scrollbar]:hidden"
+                >
+                  {filters.map((f) => {
+                    const isActive = active === f.name;
+                    const Icon = f.name === "all" ? FiGrid : catIcon(f.name);
+                    return (
+                      <button
+                        key={f.name}
+                        type="button"
+                        data-active={isActive}
+                        onClick={() => setActive(f.name)}
+                        aria-pressed={isActive}
+                        className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                          isActive
+                            ? "bg-rust text-white shadow-md"
+                            : "text-rust/70 hover:bg-rust/5 hover:text-rust"
+                        }`}
+                      >
+                        <Icon size={17} className="shrink-0" />
+                        <span className="whitespace-nowrap">{f.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => nudge(1)}
+                aria-label={t("menu.scrollRight")}
+                tabIndex={canRight ? 0 : -1}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/95 text-rust shadow-card ring-1 ring-rust/10 transition-opacity duration-300 hover:bg-rust/5 sm:h-10 sm:w-10 ${
+                  canRight ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
+              >
+                <FiChevronRight size={18} />
+              </button>
             </div>
           )}
 

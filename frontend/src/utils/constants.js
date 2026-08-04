@@ -6,7 +6,7 @@
 export const BRAND = {
   name: "Mio Pizzeria",
   tagline: "Authentic Neapolitan Pizza in Qatar",
-  phone: "+974 6006 4003",
+  phone: "+974 60064003",
   email: "info@miopizzeria.qa",
   address:
     "Dafna Park, Unit 24, Building 55, Street 841, Zone 63 — Opp. Marriott Marquis City Center, Behind Pullman Hotels (Excellence Tower), Doha, Qatar",
@@ -23,8 +23,9 @@ export const NAV_LINKS = [
   { key: "contact", label: "Contact", href: "/contact" },
 ];
 
-// WhatsApp business number (digits only, international format). Dummy for now.
-export const WHATSAPP_NUMBER = "97400000000";
+// WhatsApp business number (digits only, international format).
+// Overridden by Settings → Social links → whatsapp when that's set in the admin.
+export const WHATSAPP_NUMBER = "97460064003";
 
 // Each platform redirects to its configured ordering URL. `color` is the
 // brand accent used for the hover glow; `logo` is the app icon in /public.
@@ -68,7 +69,7 @@ export const DELIVERY_PLATFORMS = [
 export const SOCIAL_LINKS = {
   instagram: "https://instagram.com",
   facebook: "https://facebook.com",
-  whatsapp: "https://wa.me/9740000000",
+  whatsapp: "https://wa.me/97460064003",
   snapchat: "",
   tiktok: "",
 };
@@ -91,7 +92,7 @@ export const BRANCHES = [
     address:
       "Dafna Park, Unit 24, Building 55, Street 841, Zone 63. Opp. Marriott Marquis City Center, Behind Pullman Hotels (Excellence Tower), Doha, Qatar",
     mapQuery: "Mio Pizzeria, Doha, Qatar",
-    phone: "+974 6006 4003",
+    phone: "+974 60064003",
     hours: HOURS,
   },
 ];

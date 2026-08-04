@@ -100,11 +100,6 @@ export default function EventsPage() {
         <div className="section relative z-10">
           {/* Events we've done */}
           <div>
-            <div className="mb-8 text-center">
-              <p className="font-display text-lg italic text-rust-light">Recent celebrations</p>
-              <h2 className="mt-1 text-3xl font-bold text-rust md:text-4xl">Events We've Done</h2>
-            </div>
-
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {PAST_EVENTS.map((ev) => (
                 <article
