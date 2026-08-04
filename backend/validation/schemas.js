@@ -7,9 +7,13 @@ const loginSchema = z.object({
 
 const menuItemSchema = z.object({
   name: z.string().min(1).max(80),
+  nameAr: z.string().max(120).optional().default(""),
   category: z.string().min(1).max(60),
+  productCode: z.string().max(40).optional().default(""),
+  remarks: z.string().max(200).optional().default(""),
   price: z.coerce.number().min(0),
   description: z.string().max(300).optional().default(""),
+  descriptionAr: z.string().max(400).optional().default(""),
   imageUrl: z.string().max(500).optional().default(""),
   imagePublicId: z.string().max(300).optional().default(""),
   tags: z.array(z.string().max(30)).optional().default([]),

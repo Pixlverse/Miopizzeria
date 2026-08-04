@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { FiGrid } from "react-icons/fi";
-import { FaPizzaSlice, FaMugHot, FaConciergeBell, FaLeaf } from "react-icons/fa";
+import { FaPizzaSlice, FaMugHot, FaConciergeBell, FaLeaf, FaIceCream } from "react-icons/fa";
 import { GiSandwich, GiCoffeeCup, GiSodaCan } from "react-icons/gi";
 import Layout from "@/components/Layout";
 import MenuCard from "@/components/MenuCard";
@@ -17,9 +17,17 @@ function catIcon(name) {
   if (n.includes("sandwich")) return GiSandwich;
   if (n.includes("coffee")) return GiCoffeeCup;
   if (n.includes("tea")) return FaMugHot;
-  if (n.includes("cooler") || n.includes("refresh")) return GiSodaCan;
+  if (
+    n.includes("cooler") ||
+    n.includes("refresh") ||
+    n.includes("juice") ||
+    n.includes("water") ||
+    n.includes("drink")
+  )
+    return GiSodaCan;
   if (n.includes("salad") || n.includes("gluten")) return FaLeaf;
   if (n.includes("breakfast")) return FaMugHot;
+  if (n.includes("dessert")) return FaIceCream;
   return FaConciergeBell;
 }
 

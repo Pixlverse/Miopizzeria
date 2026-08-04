@@ -6,11 +6,27 @@ import api from "@/utils/api";
 import { deleteImage } from "@/utils/upload";
 
 const TAG_OPTIONS = ["Vegetarian", "Spicy", "New", "Gluten-Free"];
+// Sub-categories from the master menu sheet, stored as tags.
+const SUBCAT_OPTIONS = [
+  "Rosso",
+  "Bianco",
+  "Fritti",
+  "Special",
+  "Focaccia",
+  "Panuozzo",
+  "Folds",
+  "Mini's",
+  "Flats",
+];
 const emptyForm = {
   name: "",
+  nameAr: "",
   category: "",
+  productCode: "",
+  remarks: "",
   price: "",
   description: "",
+  descriptionAr: "",
   imageUrl: "",
   imagePublicId: "",
   tags: [],
@@ -97,9 +113,13 @@ export default function AdminMenu() {
     setEditingId(item._id);
     setForm({
       name: item.name || "",
+      nameAr: item.nameAr || "",
       category: item.category || "",
+      productCode: item.productCode || "",
+      remarks: item.remarks || "",
       price: item.price ?? "",
       description: item.description || "",
+      descriptionAr: item.descriptionAr || "",
       imageUrl: item.imageUrl || "",
       imagePublicId: item.imagePublicId || "",
       tags: item.tags || [],
@@ -127,9 +147,13 @@ export default function AdminMenu() {
     setSaving(true);
     const payload = {
       name: form.name.trim(),
+      nameAr: form.nameAr.trim(),
       category: form.category,
+      productCode: form.productCode.trim(),
+      remarks: form.remarks.trim(),
       price: Number(form.price),
       description: form.description,
+      descriptionAr: form.descriptionAr,
       imageUrl: form.imageUrl,
       imagePublicId: form.imagePublicId,
       tags: form.tags,
@@ -352,9 +376,26 @@ export default function AdminMenu() {
             </div>
 
             <form onSubmit={saveItem} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Name</label>
-                <input className={field} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Name (English)</label>
+                  <input
+                    className={field}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Name (Arabic) <span className="font-normal text-slate-400">— optional</span>
+                  </label>
+                  <input
+                    dir="rtl"
+                    className={field}
+                    value={form.nameAr}
+                    onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -385,13 +426,51 @@ export default function AdminMenu() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Product code <span className="font-normal text-slate-400">— optional</span>
+                  </label>
+                  <input
+                    className={field}
+                    placeholder="RBP-001"
+                    value={form.productCode}
+                    onChange={(e) => setForm({ ...form, productCode: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Internal remarks <span className="font-normal text-slate-400">— not shown on site</span>
+                  </label>
+                  <input
+                    className={field}
+                    placeholder="Add Redbull @ 15 QAR"
+                    value={form.remarks}
+                    onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Description (English)</label>
                 <textarea
                   rows={2}
                   className={field}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Description (Arabic) <span className="font-normal text-slate-400">— optional</span>
+                </label>
+                <textarea
+                  rows={2}
+                  dir="rtl"
+                  className={field}
+                  value={form.descriptionAr}
+                  onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
                 />
               </div>
 
@@ -422,6 +501,30 @@ export default function AdminMenu() {
                       {tag}
                     </button>
                   ))}
+                </div>
+
+                <label className="mb-1 mt-3 block text-sm font-medium text-slate-700">
+                  Sub-category
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {/* Any tag already on the item that isn't a known option still shows here,
+                      so nothing on an existing item is invisible (and silently un-editable). */}
+                  {[...new Set([...SUBCAT_OPTIONS, ...form.tags.filter((t) => !TAG_OPTIONS.includes(t))])].map(
+                    (tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                          form.tags.includes(tag)
+                            ? "bg-rust text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
