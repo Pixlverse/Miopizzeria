@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiCalendar,
@@ -11,12 +11,19 @@ import {
   FiCheck,
   FiMinus,
   FiPlus,
+  FiInfo,
 } from "react-icons/fi";
 import Layout from "@/components/Layout";
 import HeroBackdrop from "@/components/HeroBackdrop";
 import SectionBackdrop from "@/components/SectionBackdrop";
 import api from "@/utils/api";
 import { useSettings } from "@/hooks/useSettings";
+import {
+  CLOSED_RESERVATION_DAYS,
+  CLOSED_RESERVATION_LABEL,
+  LUNCH_SLOTS,
+  DINNER_SLOTS,
+} from "@/utils/constants";
 
 const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -59,8 +66,11 @@ const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-const LUNCH = ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30"];
-const DINNER = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
+const LUNCH = LUNCH_SLOTS;
+const DINNER = DINNER_SLOTS;
+
+// Reservations aren't taken on these weekdays — walk-ins only.
+const isClosedDay = (d) => CLOSED_RESERVATION_DAYS.includes(d.getDay());
 
 const STEPS = [
   { id: 0, label: "Date", Icon: FiCalendar },
@@ -84,6 +94,14 @@ function fmtDate(d) {
   });
 }
 
+// Send the calendar date, not an instant — "2026-08-19" can't drift a day
+// across timezones the way toISOString() of local midnight does.
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+}
+
 export default function BookPage() {
   const today = useMemo(startOfToday, []);
   const settings = useSettings();
@@ -101,6 +119,35 @@ export default function BookPage() {
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [booked, setBooked] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Which slots are already gone on the chosen date. Fetched as soon as the
+  // date is picked so the time step is ready by the time the guest gets there.
+  useEffect(() => {
+    if (!date) {
+      setBooked([]);
+      return;
+    }
+    let active = true;
+    setLoadingSlots(true);
+    api
+      .get("/bookings/availability", { params: { date: ymd(date) } })
+      .then(({ data }) => {
+        if (!active) return;
+        const taken = data?.booked || [];
+        setBooked(taken);
+        // Drop a selection that was claimed while the guest was deciding.
+        setTime((t) => (taken.includes(t) ? "" : t));
+      })
+      // On failure leave every slot open — the API re-checks on submit, so the
+      // worst case is a 409 rather than a lost booking.
+      .catch(() => active && setBooked([]))
+      .finally(() => active && setLoadingSlots(false));
+    return () => {
+      active = false;
+    };
+  }, [date]);
 
   // Calendar grid for the viewed month.
   const cells = useMemo(() => {
@@ -148,14 +195,23 @@ export default function BookPage() {
       await api.post("/bookings", {
         name: name.trim(),
         phone: phone.trim(),
-        date: date.toISOString(),
+        date: ymd(date),
         time,
         guests,
       });
       setDone(true);
     } catch (err) {
+      const data = err?.response?.data;
+      // Someone took the slot between loading the page and submitting — send
+      // the guest back to the time step with fresh availability.
+      if (data?.code === "SLOT_TAKEN") {
+        setBooked((b) => (b.includes(time) ? b : [...b, time]));
+        setTime("");
+        setStep(2);
+      }
       setError(
-        err?.response?.data?.message ||
+        data?.message ||
+          data?.errors?.[0]?.message ||
           "Couldn't send your request. Please check your connection and try again.",
       );
     } finally {
@@ -255,7 +311,14 @@ export default function BookPage() {
                         />
                       )}
                       {step === 1 && <GuestStep guests={guests} setGuests={chooseGuests} />}
-                      {step === 2 && <TimeStep time={time} setTime={setTime} />}
+                      {step === 2 && (
+                        <TimeStep
+                          time={time}
+                          setTime={setTime}
+                          booked={booked}
+                          loading={loadingSlots}
+                        />
+                      )}
                       {step === 3 && (
                         <DetailsStep
                           name={name}
@@ -421,20 +484,32 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
         {cells.map((d, i) => {
           if (!d) return <span key={`e${i}`} />;
           const past = d < today;
+          const closed = isClosedDay(d);
+          const blocked = past || closed;
           const selected = sameDay(d, date);
           const isToday = sameDay(d, today);
           return (
-            <div key={d.toISOString()} className="flex aspect-square items-center justify-center">
+            <div
+              key={d.toISOString()}
+              className="group relative flex aspect-square items-center justify-center"
+            >
               <button
                 type="button"
-                disabled={past}
+                disabled={blocked}
                 onClick={() => onPick(d)}
+                aria-label={
+                  closed && !past
+                    ? `${fmtDate(d)} — no reservations, walk-ins only`
+                    : fmtDate(d)
+                }
                 className={`relative grid h-10 w-10 place-items-center rounded-full text-sm font-semibold transition-all duration-200 ${
                   selected
                     ? "scale-105 bg-gradient-to-br from-rust to-rust-dark text-white shadow-lg shadow-rust/30"
                     : past
                       ? "cursor-not-allowed text-muted/30"
-                      : "text-ink hover:scale-110 hover:bg-rust/10 hover:text-rust active:scale-95"
+                      : closed
+                        ? "cursor-not-allowed text-muted/40 line-through decoration-muted/40"
+                        : "text-ink hover:scale-110 hover:bg-rust/10 hover:text-rust active:scale-95"
                 } ${isToday && !selected ? "font-bold text-rust ring-2 ring-rust/40" : ""}`}
               >
                 {d.getDate()}
@@ -442,10 +517,29 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
                   <span className="absolute bottom-1 h-1 w-1 rounded-full bg-rust" />
                 )}
               </button>
+
+              {closed && !past && (
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute -top-8 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+                >
+                  No reservations
+                </span>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Why some days are struck through. */}
+      <p className="mt-3 flex items-start gap-2 rounded-xl bg-rust/[0.06] px-3 py-2.5 text-xs leading-relaxed text-rust-light ring-1 ring-rust/10">
+        <FiInfo className="mt-0.5 shrink-0" size={14} />
+        <span>
+          We don&apos;t take reservations on{" "}
+          <strong className="font-bold">{CLOSED_RESERVATION_LABEL}</strong> — those
+          evenings are walk-ins only, so just come by and we&apos;ll seat you.
+        </span>
+      </p>
     </div>
   );
 }
@@ -515,39 +609,71 @@ function GuestStep({ guests, setGuests }) {
   );
 }
 
-function Slot({ value, time, setTime }) {
+function Slot({ value, time, setTime, taken }) {
   const active = time === value;
   return (
-    <button
-      type="button"
-      onClick={() => setTime(value)}
-      className={`rounded-xl border py-2.5 text-sm font-semibold transition-all ${
-        active
-          ? "border-rust bg-rust text-white shadow-md"
-          : "border-rust/25 bg-white text-ink hover:border-rust hover:bg-rust/5"
-      }`}
-    >
-      {value}
-    </button>
+    <div className="group relative">
+      <button
+        type="button"
+        disabled={taken}
+        aria-label={taken ? `${value} — already booked` : value}
+        onClick={() => setTime(value)}
+        className={`w-full rounded-xl border py-2.5 text-sm font-semibold transition-all ${
+          taken
+            ? "cursor-not-allowed border-rust/10 bg-rust/[0.04] text-muted/40 line-through decoration-muted/40"
+            : active
+              ? "border-rust bg-rust text-white shadow-md"
+              : "border-rust/25 bg-white text-ink hover:border-rust hover:bg-rust/5"
+        }`}
+      >
+        {value}
+      </button>
+
+      {taken && (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute -top-9 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2.5 py-1.5 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
+        >
+          Already booked
+          <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-ink" />
+        </span>
+      )}
+    </div>
   );
 }
 
-function TimeStep({ time, setTime }) {
+function TimeStep({ time, setTime, booked, loading }) {
+  const isTaken = (v) => booked.includes(v);
+  const allTaken = [...LUNCH, ...DINNER].every(isTaken);
+
   return (
     <div>
-      <p className="text-center text-muted">Pick a time that suits you.</p>
+      <p className="text-center text-muted">
+        {loading
+          ? "Checking which times are free…"
+          : allTaken
+            ? "Every slot is taken on this date."
+            : "Pick a time that suits you."}
+      </p>
+
+      {allTaken && !loading && (
+        <p className="mt-4 rounded-xl bg-rust/[0.06] px-3 py-2.5 text-center text-xs text-rust-light ring-1 ring-rust/10">
+          Please go back and choose another date — or call us and we&apos;ll do our best
+          to fit you in.
+        </p>
+      )}
 
       <p className="mt-6 mb-2 text-sm font-bold uppercase tracking-wide text-rust-light">Lunch</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {LUNCH.map((v) => (
-          <Slot key={v} value={v} time={time} setTime={setTime} />
+          <Slot key={v} value={v} time={time} setTime={setTime} taken={isTaken(v)} />
         ))}
       </div>
 
       <p className="mb-2 mt-6 text-sm font-bold uppercase tracking-wide text-rust-light">Dinner</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {DINNER.map((v) => (
-          <Slot key={v} value={v} time={time} setTime={setTime} />
+          <Slot key={v} value={v} time={time} setTime={setTime} taken={isTaken(v)} />
         ))}
       </div>
     </div>

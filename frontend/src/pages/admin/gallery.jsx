@@ -17,7 +17,8 @@ export default function AdminGallery() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get("/gallery");
+      // Opt-in, so the public gallery never receives inactive images.
+      const { data } = await api.get("/gallery", { params: { includeInactive: true } });
       setImages(data || []);
     } catch (err) {
       setError(err?.response?.data?.message || "Couldn't load the gallery.");

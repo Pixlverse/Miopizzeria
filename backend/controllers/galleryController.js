@@ -3,8 +3,11 @@ const { cloudinary, isConfigured } = require("../config/cloudinary");
 
 exports.list = async (req, res, next) => {
   try {
-    // Public callers see only active images; admins see everything.
-    const filter = req.user ? {} : { status: "Active" };
+    // Inactive images are hidden unless an admin asks for them *explicitly*.
+    // See menuController.list — the shared api client sends the admin token on
+    // public requests too, so `req.user` alone can't gate this.
+    const filter =
+      req.user && req.query.includeInactive === "true" ? {} : { status: "Active" };
     const images = await GalleryImage.find(filter).sort({ order: 1, createdAt: -1 });
     return res.json(images);
   } catch (err) {

@@ -1,9 +1,12 @@
 const PartyOrder = require("../models/PartyOrder");
+const { notifyNewPartyOrder } = require("../services/notifications");
 
 // Public: submit a party-order / event request.
 exports.create = async (req, res, next) => {
   try {
     const order = await PartyOrder.create(req.body);
+    // Fire-and-forget — see bookingController.create.
+    notifyNewPartyOrder(order);
     return res.status(201).json(order);
   } catch (err) {
     return next(err);

@@ -49,6 +49,69 @@ Requires a running MongoDB (local or MongoDB Atlas).
 | GET    | /api/categories       | —     |
 | GET    | /api/settings         | —     |
 | PUT    | /api/settings         | admin |
+| POST   | /api/bookings         | —     |
+| GET    | /api/bookings/rules   | —     |
+| GET    | /api/bookings/availability?date=YYYY-MM-DD | — |
+| POST   | /api/party-orders     | —     |
+| GET    | /api/notifications/status | admin |
+| POST   | /api/notifications/test   | admin |
+
+### Reservation rules
+
+- **No reservations on Thursday, Friday or Saturday** — walk-ins only. Defined in
+  `backend/config/reservations.js` and mirrored in `frontend/src/utils/constants.js`
+  (`CLOSED_RESERVATION_DAYS`); **keep the two in sync**. The API enforces it, so a
+  stale copy in the UI can't create an invalid booking.
+- **One table per time slot.** A slot counts as taken while a request is Pending or
+  Confirmed; cancelling frees it. The booking UI greys out taken slots via
+  `GET /api/bookings/availability`, and `POST /api/bookings` re-checks on submit,
+  returning `409 { code: "SLOT_TAKEN" }` if someone got there first.
+- Guests send a plain calendar date (`2026-08-19`), not an instant — a timestamp of
+  local midnight shifts a day across timezones.
+
+### Alerts
+
+Every new reservation and party order is saved, then pushed to the restaurant over
+**WhatsApp and email**. Both are fire-and-forget and independently switchable, so an
+outage in either never fails a guest's request.
+
+Each alert carries three actions — **Confirm**, **Decline**, **Call**. Confirm and
+Decline are `wa.me` click-to-chat links that open a chat with the *guest* with the
+reply already typed; the owner just presses send. Because a human sends it from the
+restaurant's own WhatsApp, this needs **no approved template and no guest opt-in**.
+Guest phone numbers are normalised to E.164 first (`backend/utils/phone.js`, bare
+8-digit numbers assumed `+974`), and the alert says so explicitly when a number is
+too malformed to build a link from.
+
+#### WhatsApp
+
+- `WHATSAPP_PROVIDER` — `log` (default; prints to console), `meta`, `twilio`, `off`
+- `WHATSAPP_NOTIFY_TO` — the restaurant's number, digits only (`97460064003`)
+
+For production use **meta** with a permanent System User token and an approved
+**Utility** template whose body is a single `{{1}}` (`WHATSAPP_TEMPLATE_NAME`) —
+free-form text only reaches a number that messaged the business in the last 24h.
+The API sender must be a *dedicated* number, never the restaurant's public one:
+registering a number to the Cloud API removes it from the WhatsApp app.
+
+#### Email
+
+Configure in `backend/.env` (see `.env.example`):
+
+- `EMAIL_PROVIDER` — `ethereal` (local testing), `smtp` (real delivery), `log`, or `off`
+- `EMAIL_NOTIFY_TO` — recipient inbox(es), comma-separated
+- `ADMIN_URL` — optional; adds an "Open admin panel" button to the email
+
+**Ethereal** (default locally): no credentials needed. Nodemailer captures the
+mail and prints a `preview:` URL to the server console — open it to see exactly
+what would have been delivered. Nothing reaches a real inbox.
+
+**SMTP** (real delivery): set `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS`
+and `EMAIL_PROVIDER=smtp`. For Gmail use `smtp.gmail.com`, port `587`, and a
+16-character **App Password** (Google Account → Security → 2-Step Verification →
+App passwords) — a normal account password will be rejected.
+
+Verify the wiring any time with `POST /api/notifications/test` (admin auth).
 
 ## Status
 

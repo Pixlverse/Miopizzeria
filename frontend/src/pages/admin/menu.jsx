@@ -57,7 +57,12 @@ export default function AdminMenu() {
     setLoading(true);
     setError("");
     try {
-      const params = view === "archived" ? { archived: true } : {};
+      // includeInactive is opt-in: the public site must never receive inactive
+      // items, even though the shared api client sends the admin token along.
+      const params =
+        view === "archived"
+          ? { archived: true, includeInactive: true }
+          : { includeInactive: true };
       const [c, m] = await Promise.all([
         api.get("/categories"),
         api.get("/menu-items", { params }),

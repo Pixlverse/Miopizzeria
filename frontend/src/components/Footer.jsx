@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   FaInstagram,
   FaFacebookF,
@@ -106,8 +107,26 @@ export default function Footer() {
       </div>
 
       <div className="relative z-10 border-t border-cream/10">
-        <div className="section flex flex-col items-center justify-between gap-2 py-5 text-xs text-cream/60 sm:flex-row">
+        <div className="section flex flex-col items-center justify-between gap-3 py-5 text-xs text-cream/60 sm:flex-row">
           <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
+
+          {/* Studio credit — white logo, so it sits straight on the rust background. */}
+          <a
+            href="https://hiwagamakers.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 opacity-70 transition-opacity hover:opacity-100"
+          >
+            <span>Developed by</span>
+            <Image
+              src="/images/hiwaga-makers.png"
+              alt="Hiwaga Makers"
+              width={74}
+              height={20}
+              className="h-5 w-auto"
+            />
+          </a>
+
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-white">Privacy</Link>
             <Link href="/terms" className="hover:text-white">Terms</Link>

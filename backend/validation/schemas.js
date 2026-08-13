@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const { ALL_SLOTS, isClosedDay, closedDaysLabel } = require("../config/reservations");
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -35,13 +36,20 @@ const userCreateSchema = z.object({
   password: z.string().min(8),
 });
 
-const bookingSchema = z.object({
-  name: z.string().min(1).max(80),
-  phone: z.string().min(6).max(30),
-  date: z.coerce.date(),
-  time: z.string().min(1).max(10),
-  guests: z.number().int().min(1).max(50),
-});
+// The UI blocks closed days and invalid slots, but the endpoint is public —
+// so the same rules are enforced here rather than trusted from the client.
+const bookingSchema = z
+  .object({
+    name: z.string().min(1).max(80),
+    phone: z.string().min(6).max(30),
+    date: z.coerce.date(),
+    time: z.enum(ALL_SLOTS),
+    guests: z.coerce.number().int().min(1).max(50),
+  })
+  .refine((b) => !isClosedDay(b.date), {
+    path: ["date"],
+    message: `We don't take reservations on ${closedDaysLabel()} — walk-ins only on those days.`,
+  });
 
 const partyOrderSchema = z.object({
   name: z.string().min(1).max(80),

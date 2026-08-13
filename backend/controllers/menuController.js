@@ -2,10 +2,19 @@ const MenuItem = require("../models/MenuItem");
 
 exports.list = async (req, res, next) => {
   try {
-    // Public callers see only active, non-archived items; admins see more.
-    const filter = req.user ? {} : { status: "Active" };
+    const filter = {};
+
+    // Inactive items are hidden unless an admin asks for them *explicitly*.
+    // Keying this off `req.user` alone was a bug: the frontend attaches the
+    // admin token to every request, so browsing the public menu while logged
+    // into the admin panel surfaced inactive items on the live site.
+    const wantsInactive = req.user && req.query.includeInactive === "true";
+    if (!wantsInactive) {
+      filter.status = "Active";
+    }
+
     // Archived items are hidden by default; admins can request them explicitly.
-    if (req.query.archived === "true") {
+    if (req.user && req.query.archived === "true") {
       filter.archived = true;
     } else {
       filter.archived = { $ne: true };

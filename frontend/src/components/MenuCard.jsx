@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { formatPrice } from "@/utils/formatters";
+import { cdnImage } from "@/utils/images";
 import { useI18n } from "@/context/LocaleContext";
 import Logo from "./Logo";
 import OrderModal from "./OrderModal";
@@ -13,8 +13,13 @@ import OrderModal from "./OrderModal";
  *
  * Items without a photo yet get a branded rust panel instead, so the grid stays
  * even while the team uploads images from the admin.
+ *
+ * Deliberately animation-free. A `whileInView` entrance per card meant 80+
+ * IntersectionObservers on a full menu, and cards sat at opacity 0 until their
+ * observer fired — fast scrolling outran it and left blank white rows. Hover
+ * polish is pure CSS, which costs nothing on scroll.
  */
-export default function MenuCard({ item, index = 0 }) {
+export default function MenuCard({ item }) {
   const [open, setOpen] = useState(false);
   const { locale } = useI18n();
 
@@ -32,18 +37,14 @@ export default function MenuCard({ item, index = 0 }) {
         aria-label={name}
         className="group block h-full w-full text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-rust focus-visible:ring-offset-2"
       >
-        <motion.article
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.45, delay: (index % 4) * 0.08 }}
+        <article
           className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_rgba(139,61,47,0.10)] ring-1 ring-rust/5 transition-all duration-400 ease-bounce group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_rgba(139,61,47,0.18)]"
         >
           {/* Photo — square. Falls back to a brand panel when there's no image yet. */}
           <div className="relative aspect-square overflow-hidden">
             {image ? (
               <Image
-                src={image}
+                src={cdnImage(image, 600)}
                 alt={name}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -88,10 +89,12 @@ export default function MenuCard({ item, index = 0 }) {
               </span>
             </div>
           </div>
-        </motion.article>
+        </article>
       </button>
 
-      <OrderModal item={item} open={open} onClose={() => setOpen(false)} />
+      {/* Mounted only while open. One instance per card meant 80+ modals in the
+          tree, each with its own settings fetch and effects. */}
+      {open && <OrderModal item={item} open onClose={() => setOpen(false)} />}
     </>
   );
 }

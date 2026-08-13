@@ -1,44 +1,37 @@
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
 
-// Shipped with the site; used until the admin uploads images (and if the API is down).
-export const DEFAULT_GALLERY = [
-  "/images/rest1.jpg",
-  "/images/prod-1.jpg",
-  "/images/rest2.jpg",
-  "/images/prod-3.jpg",
-  "/images/rest3.jpg",
-  "/images/prod-5.jpg",
-  "/images/rest4.jpg",
-  "/images/prod-2.jpg",
-  "/images/slider3.png",
-  "/images/prod-4.jpg",
-];
-
-const FALLBACK = DEFAULT_GALLERY.map((src) => ({ imageUrl: src, alt: "MIO pizzeria" }));
-
 /**
- * Client-side fetch of the admin-managed gallery. Falls back to the bundled
- * images while loading, on failure, or when nothing has been uploaded yet.
- * Safe on static-export pages.
+ * Client-side fetch of the admin-managed gallery.
  *
- * @returns {{ images: {imageUrl: string, alt?: string}[], isDefault: boolean }}
+ * There is deliberately no bundled fallback set: showing stock photos when the
+ * admin has uploaded nothing makes an empty gallery look populated, and the
+ * images shipped in the repo for that purpose were ~3 MB of dead weight.
+ * Callers get an empty array and should render an empty state instead.
+ *
+ * @returns {{ images: {imageUrl: string, alt?: string}[], loading: boolean }}
  */
 export function useGallery() {
-  const [images, setImages] = useState(null);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     api
       .get("/gallery")
       .then(({ data }) => {
-        if (active && Array.isArray(data) && data.length > 0) setImages(data);
+        if (active && Array.isArray(data)) setImages(data);
       })
-      .catch(() => {});
+      .catch(() => {
+        /* leave empty — the empty state covers it */
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
   }, []);
 
-  return { images: images || FALLBACK, isDefault: !images };
+  return { images, loading };
 }

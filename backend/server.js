@@ -23,6 +23,7 @@ app.use("/api/settings", require("./routes/settings"));
 app.use("/api/bookings", require("./routes/bookings"));
 app.use("/api/party-orders", require("./routes/partyOrders"));
 app.use("/api/users", require("./routes/users"));
+app.use("/api/notifications", require("./routes/notifications"));
 
 // 404 + error handling
 app.use((req, res) => res.status(404).json({ message: "Not found" }));

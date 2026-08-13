@@ -1,17 +1,13 @@
 import { FaWhatsapp } from "react-icons/fa";
+import { WHATSAPP_NUMBER } from "@/utils/constants";
 import { useI18n } from "@/context/LocaleContext";
-import { useSettings } from "@/hooks/useSettings";
-import { whatsappLink } from "@/utils/whatsapp";
 
 /** Site-wide floating click-to-chat button. */
 export default function WhatsAppButton() {
   const { t } = useI18n();
-  const settings = useSettings();
-
   return (
     <a
-      // Admin-managed number when Settings has one, else the number in constants.
-      href={whatsappLink(settings?.socialLinks?.whatsapp)}
+      href={`https://wa.me/${WHATSAPP_NUMBER}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t("whatsapp.label")}

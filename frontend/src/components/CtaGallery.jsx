@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { cdnImage } from "@/utils/images";
 import { FiArrowRight } from "react-icons/fi";
 import PaperTexture from "./PaperTexture";
 import { useI18n } from "@/context/LocaleContext";
@@ -24,8 +25,11 @@ const TILES = Array.from({ length: TILE_COUNT }, (_, i) => {
 
 export default function CtaGallery() {
   const { t } = useI18n();
-  // Same admin-managed images as /gallery, cycled around the arc.
+  // Same admin-managed images as /gallery, cycled around the arc. With none
+  // uploaded the arc is skipped entirely — the backdrop and CTA still stand on
+  // their own, and there is no stock imagery to fall back on by design.
   const { images } = useGallery();
+  const hasImages = images.length > 0;
 
   return (
     <section className="relative flex min-h-[420px] items-center overflow-hidden md:min-h-[480px]">
@@ -46,7 +50,7 @@ export default function CtaGallery() {
 
       {/* Floating square-tile arc */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {TILES.map((tile, i) => (
+        {hasImages && TILES.map((tile, i) => (
           <div
             key={i}
             className={`absolute ${tile.mobileHide ? "hidden sm:block" : ""}`}
@@ -62,7 +66,7 @@ export default function CtaGallery() {
               >
                 <div className="relative h-full w-full">
                   <Image
-                    src={images[i % images.length].imageUrl}
+                    src={cdnImage(images[i % images.length].imageUrl, 800)}
                     alt=""
                     fill
                     sizes="80px"
