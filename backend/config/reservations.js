@@ -58,6 +58,51 @@ function dayRange(date) {
   return { start, end };
 }
 
+// ---- Minimum notice ----------------------------------------------------
+// Same-day requests are the ones that get missed, so reservations must land at
+// least this far ahead of the restaurant's own clock. Guests wanting something
+// sooner are pointed at the phone instead.
+const MIN_NOTICE_HOURS = Number(process.env.MIN_BOOKING_NOTICE_HOURS || 24);
+
+// Qatar is UTC+3 year-round — no daylight saving — so a fixed offset is safe
+// and avoids depending on the server's timezone.
+const QATAR_UTC_OFFSET_HOURS = 3;
+
+// The absolute instant a reservation starts. The date arrives as UTC midnight
+// of a Qatar calendar day and the time is restaurant-local, so 20:30 on
+// 2026-08-19 is 17:30 UTC.
+function reservationInstant(date, time) {
+  const d = date instanceof Date ? date : new Date(date);
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(time || ""));
+  if (Number.isNaN(d.getTime()) || !m) return null;
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      Number(m[1]) - QATAR_UTC_OFFSET_HOURS,
+      Number(m[2])
+    )
+  );
+}
+
+// Earliest instant a reservation may start.
+function noticeCutoff(now = new Date()) {
+  return new Date(now.getTime() + MIN_NOTICE_HOURS * 60 * 60 * 1000);
+}
+
+function isTooSoon(date, time, now = new Date()) {
+  const at = reservationInstant(date, time);
+  // An unparseable date/time is left to the shape validators to report.
+  if (!at) return false;
+  return at.getTime() < noticeCutoff(now).getTime();
+}
+
+// Which of a given date's slots fail the notice rule.
+function tooSoonSlots(date, now = new Date()) {
+  return ALL_SLOTS.filter((t) => isTooSoon(date, t, now));
+}
+
 // "Thursday, Friday and Saturday"
 function closedDaysLabel() {
   const names = CLOSED_RESERVATION_DAYS.map((d) => DAY_NAMES[d]);
@@ -72,7 +117,13 @@ module.exports = {
   DINNER_SLOTS,
   ALL_SLOTS,
   BLOCKING_STATUSES,
+  MIN_NOTICE_HOURS,
+  QATAR_UTC_OFFSET_HOURS,
   isClosedDay,
   dayRange,
   closedDaysLabel,
+  reservationInstant,
+  noticeCutoff,
+  isTooSoon,
+  tooSoonSlots,
 };

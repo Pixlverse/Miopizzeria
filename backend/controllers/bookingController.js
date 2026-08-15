@@ -6,9 +6,12 @@ const {
   DINNER_SLOTS,
   BLOCKING_STATUSES,
   CLOSED_RESERVATION_DAYS,
+  MIN_NOTICE_HOURS,
   closedDaysLabel,
   isClosedDay,
   dayRange,
+  noticeCutoff,
+  tooSoonSlots,
 } = require("../config/reservations");
 
 // Public: create a reservation request.
@@ -59,6 +62,8 @@ exports.availability = async (req, res, next) => {
         closed: true,
         reason: `No reservations on ${closedDaysLabel()}.`,
         booked: ALL_SLOTS,
+        tooSoon: [],
+        minNoticeHours: MIN_NOTICE_HOURS,
         slots: { lunch: LUNCH_SLOTS, dinner: DINNER_SLOTS },
       });
     }
@@ -73,6 +78,10 @@ exports.availability = async (req, res, next) => {
       date,
       closed: false,
       booked: [...new Set(rows.map((r) => r.time))],
+      // Slots inside the notice window, per the server's clock — the UI shows
+      // these as unavailable with a "call us" prompt rather than hiding them.
+      tooSoon: tooSoonSlots(parsed),
+      minNoticeHours: MIN_NOTICE_HOURS,
       slots: { lunch: LUNCH_SLOTS, dinner: DINNER_SLOTS },
     });
   } catch (err) {
@@ -85,6 +94,9 @@ exports.rules = (req, res) =>
   res.json({
     closedDays: CLOSED_RESERVATION_DAYS,
     closedDaysLabel: closedDaysLabel(),
+    minNoticeHours: MIN_NOTICE_HOURS,
+    // Earliest bookable instant, so the UI can explain the cutoff.
+    bookableFrom: noticeCutoff().toISOString(),
     slots: { lunch: LUNCH_SLOTS, dinner: DINNER_SLOTS },
   });
 

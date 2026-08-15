@@ -58,6 +58,19 @@ Requires a running MongoDB (local or MongoDB Atlas).
 
 ### Reservation rules
 
+Everything time-related resolves against **Doha (UTC+3, no DST)**, never the
+visitor's device — a guest browsing from another timezone sees the same "today",
+the same open/closed state and the same bookable slots as someone at the door.
+Frontend helpers live in `frontend/src/utils/qatarTime.js`; the backend uses a
+fixed offset in `backend/config/reservations.js`.
+
+- **Minimum 24 hours' notice** (`MIN_BOOKING_NOTICE_HOURS`). Same-day requests are
+  the ones that get missed, so the calendar greys out any date with no slot far
+  enough ahead, individual slots inside the window are disabled with a
+  "Needs 24h notice" tooltip, and both the date step and a fully-blocked time step
+  offer a **direct call link** instead of a dead end. `GET /availability` returns a
+  `tooSoon` list computed from the *server's* clock, so a wrong device clock can
+  only affect what the UI offers — never what gets saved.
 - **No reservations on Thursday, Friday or Saturday** — walk-ins only. Defined in
   `backend/config/reservations.js` and mirrored in `frontend/src/utils/constants.js`
   (`CLOSED_RESERVATION_DAYS`); **keep the two in sync**. The API enforces it, so a

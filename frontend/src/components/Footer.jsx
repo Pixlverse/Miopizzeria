@@ -10,6 +10,7 @@ import {
 import Logo from "./Logo";
 import PaperTexture from "./PaperTexture";
 import { BRAND, NAV_LINKS, SOCIAL_LINKS } from "@/utils/constants";
+import { qatarParts } from "@/utils/qatarTime";
 import { useSettings } from "@/hooks/useSettings";
 
 // Platform → icon/label. Order defines display order; only links with a value show.
@@ -108,7 +109,9 @@ export default function Footer() {
 
       <div className="relative z-10 border-t border-cream/10">
         <div className="section flex flex-col items-center justify-between gap-3 py-5 text-xs text-cream/60 sm:flex-row">
-          <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
+          {/* Doha's year, so the copyright doesn't flip early or late for
+              visitors in other timezones on New Year's Eve. */}
+          <p>© {qatarParts().year} {BRAND.name}. All rights reserved.</p>
 
           {/* Studio credit — white logo, so it sits straight on the rust background. */}
           <a

@@ -10,6 +10,8 @@ import SectionBackdrop from "@/components/SectionBackdrop";
 import api from "@/utils/api";
 import { useI18n } from "@/context/LocaleContext";
 
+const GRID = "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
 // Pick a line-art icon from the category name (falls back to the cloche).
 function catIcon(name) {
   const n = (name || "").toLowerCase();
@@ -81,10 +83,29 @@ export default function MenuPage() {
     [categories, t],
   );
 
-  const visible = useMemo(
-    () => (active === "all" ? items : items.filter((it) => it.category === active)),
-    [active, items],
-  );
+  // Category display order comes from the admin (GET /categories is sorted by
+  // its `order` field), so the menu follows it without a hardcoded list here.
+  // Categories with no matching record sort to the end, alphabetically.
+  const rank = useMemo(() => {
+    const map = new Map(categories.map((c, i) => [c.name.toLowerCase(), i]));
+    return (name) => {
+      const i = map.get(String(name || "").toLowerCase());
+      return i === undefined ? categories.length : i;
+    };
+  }, [categories]);
+
+  // "All" is one continuous grid — no section headings — but ordered so each
+  // category's items sit together: every Breakfast item, then Pizza, and so on.
+  // Array.sort is stable, so each item's admin `order` survives within its
+  // category. Unlisted categories fall to the end, alphabetically.
+  const visible = useMemo(() => {
+    if (active !== "all") return items.filter((it) => it.category === active);
+    return [...items].sort(
+      (a, b) =>
+        rank(a.category) - rank(b.category) ||
+        String(a.category || "").localeCompare(String(b.category || "")),
+    );
+  }, [active, items, rank]);
 
   // Split the heading so the first word is white and the rest is the accent italic.
   const heading = t("menu.title");
@@ -198,7 +219,7 @@ export default function MenuPage() {
           ) : visible.length === 0 ? (
             <p className="mt-16 text-center text-muted">{t("menu.empty")}</p>
           ) : (
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={`mt-10 ${GRID}`}>
               {visible.map((item, i) => (
                 <MenuCard key={item._id || `${item.category}-${i}`} item={item} />
               ))}

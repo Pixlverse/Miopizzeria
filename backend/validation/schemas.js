@@ -1,5 +1,11 @@
 const { z } = require("zod");
-const { ALL_SLOTS, isClosedDay, closedDaysLabel } = require("../config/reservations");
+const {
+  ALL_SLOTS,
+  MIN_NOTICE_HOURS,
+  isClosedDay,
+  closedDaysLabel,
+  isTooSoon,
+} = require("../config/reservations");
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -49,6 +55,12 @@ const bookingSchema = z
   .refine((b) => !isClosedDay(b.date), {
     path: ["date"],
     message: `We don't take reservations on ${closedDaysLabel()} — walk-ins only on those days.`,
+  })
+  // Checked against the server clock, so a guest with a wrong device clock (or
+  // a crafted request) still can't book inside the notice window.
+  .refine((b) => !isTooSoon(b.date, b.time), {
+    path: ["time"],
+    message: `Reservations need at least ${MIN_NOTICE_HOURS} hours' notice. Please call us for sooner bookings.`,
   });
 
 const partyOrderSchema = z.object({

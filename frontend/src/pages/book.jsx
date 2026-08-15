@@ -19,13 +19,28 @@ import SectionBackdrop from "@/components/SectionBackdrop";
 import api from "@/utils/api";
 import { useSettings } from "@/hooks/useSettings";
 import {
+  BRAND,
   CLOSED_RESERVATION_DAYS,
   CLOSED_RESERVATION_LABEL,
   LUNCH_SLOTS,
   DINNER_SLOTS,
 } from "@/utils/constants";
+import {
+  MIN_NOTICE_HOURS,
+  isSlotTooSoon,
+  isDateTooSoon,
+} from "@/utils/reservations";
+import { qatarToday, qatarMinutesNow, qatarWeekday } from "@/utils/qatarTime";
 
-const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+const DAY_KEYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
 
 const toMin = (hhmm) => {
   if (!hhmm || !/^\d{1,2}:\d{2}$/.test(hhmm)) return null;
@@ -33,7 +48,8 @@ const toMin = (hhmm) => {
   return h * 60 + m;
 };
 
-// Live open/closed status for the given day's hours, vs. the current time.
+// Live open/closed status for the given day's hours, vs. the current time in
+// Doha — the opening hours are the restaurant's, so the clock must be too.
 function hoursStatus(dh) {
   if (!dh) return null;
   if (dh.closed) return { state: "closed", label: "Closed today" };
@@ -41,8 +57,7 @@ function hoursStatus(dh) {
   const close = toMin(dh.close);
   if (open == null || close == null) return null;
 
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowMin = qatarMinutesNow();
   const closeAdj = close <= open ? close + 1440 : close; // handle past-midnight close
   const nowAdj = nowMin < open && close <= open ? nowMin + 1440 : nowMin;
 
@@ -56,21 +71,45 @@ function hoursStatus(dh) {
 }
 
 const STATUS_TONE = {
-  open: { dot: "bg-green-400", pill: "bg-green-400/15 ring-green-300/30 text-green-50" },
-  soon: { dot: "bg-amber-400", pill: "bg-amber-400/15 ring-amber-300/30 text-amber-50" },
-  closed: { dot: "bg-red-400", pill: "bg-white/10 ring-white/15 text-cream/80" },
+  open: {
+    dot: "bg-green-400",
+    pill: "bg-green-400/15 ring-green-300/30 text-green-50",
+  },
+  soon: {
+    dot: "bg-amber-400",
+    pill: "bg-amber-400/15 ring-amber-300/30 text-amber-50",
+  },
+  closed: {
+    dot: "bg-red-400",
+    pill: "bg-white/10 ring-white/15 text-cream/80",
+  },
 };
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const LUNCH = LUNCH_SLOTS;
 const DINNER = DINNER_SLOTS;
 
+const ALL_SLOTS = [...LUNCH, ...DINNER];
+
 // Reservations aren't taken on these weekdays — walk-ins only.
 const isClosedDay = (d) => CLOSED_RESERVATION_DAYS.includes(d.getDay());
+
+// Dial-able form of the restaurant number, for the same-day "call us" prompt.
+const CALL_HREF = `tel:${BRAND.phone.replace(/[^\d+]/g, "")}`;
 
 const STEPS = [
   { id: 0, label: "Date", Icon: FiCalendar },
@@ -78,12 +117,6 @@ const STEPS = [
   { id: 2, label: "Time", Icon: FiClock },
   { id: 3, label: "Details", Icon: FiUser },
 ];
-
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
 
 function fmtDate(d) {
   return d.toLocaleDateString("en-GB", {
@@ -103,12 +136,17 @@ function ymd(d) {
 }
 
 export default function BookPage() {
-  const today = useMemo(startOfToday, []);
+  // "Today" is Doha's today, not the visitor's — a guest browsing from a
+  // timezone ahead of Qatar must not see tomorrow's calendar.
+  const today = useMemo(() => qatarToday(), []);
   const settings = useSettings();
-  const todayHours = settings?.hours?.[DAY_KEYS[today.getDay()]];
+  const todayHours = settings?.hours?.[DAY_KEYS[qatarWeekday()]];
   const status = hoursStatus(todayHours);
   const [step, setStep] = useState(0);
-  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
+  const [view, setView] = useState({
+    y: today.getFullYear(),
+    m: today.getMonth(),
+  });
   const [date, setDate] = useState(null);
   const [guests, setGuests] = useState(2);
   const [guestsTouched, setGuestsTouched] = useState(false);
@@ -120,6 +158,7 @@ export default function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [booked, setBooked] = useState([]);
+  const [tooSoon, setTooSoon] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Which slots are already gone on the chosen date. Fetched as soon as the
@@ -127,6 +166,7 @@ export default function BookPage() {
   useEffect(() => {
     if (!date) {
       setBooked([]);
+      setTooSoon([]);
       return;
     }
     let active = true;
@@ -136,13 +176,23 @@ export default function BookPage() {
       .then(({ data }) => {
         if (!active) return;
         const taken = data?.booked || [];
+        // The server's notice window wins over the local estimate — its clock
+        // is the one that will accept or reject the booking.
+        const soon =
+          data?.tooSoon || ALL_SLOTS.filter((t) => isSlotTooSoon(date, t));
         setBooked(taken);
-        // Drop a selection that was claimed while the guest was deciding.
-        setTime((t) => (taken.includes(t) ? "" : t));
+        setTooSoon(soon);
+        // Drop a selection that was claimed (or lapsed) while they decided.
+        setTime((t) => (taken.includes(t) || soon.includes(t) ? "" : t));
       })
-      // On failure leave every slot open — the API re-checks on submit, so the
-      // worst case is a 409 rather than a lost booking.
-      .catch(() => active && setBooked([]))
+      // On failure fall back to the local notice estimate and leave the rest
+      // open — the API re-checks on submit, so the worst case is a rejection
+      // rather than a lost booking.
+      .catch(() => {
+        if (!active) return;
+        setBooked([]);
+        setTooSoon(ALL_SLOTS.filter((t) => isSlotTooSoon(date, t)));
+      })
       .finally(() => active && setLoadingSlots(false));
     return () => {
       active = false;
@@ -154,7 +204,8 @@ export default function BookPage() {
     const firstDay = new Date(view.y, view.m, 1).getDay();
     const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
     const arr = Array.from({ length: firstDay }, () => null);
-    for (let d = 1; d <= daysInMonth; d += 1) arr.push(new Date(view.y, view.m, d));
+    for (let d = 1; d <= daysInMonth; d += 1)
+      arr.push(new Date(view.y, view.m, d));
     return arr;
   }, [view]);
 
@@ -226,29 +277,35 @@ export default function BookPage() {
         <HeroBackdrop />
 
         <div className="section relative z-10 text-center">
-          <p className="font-display text-xl italic text-cream/80">Reservations</p>
-          <h1 className="mt-2 text-5xl font-bold text-white md:text-6xl">Book a Table</h1>
+          <p className="font-display text-xl italic text-cream/80">
+            Reservations
+          </p>
+          <h1 className="mt-2 text-5xl font-bold text-white md:text-6xl">
+            Book a Table
+          </h1>
           <p className="mt-4 text-lg leading-relaxed text-cream/85">
             A few taps and your table is set
           </p>
-            {status && (
-              <p
-                className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold ring-1 ${
-                  STATUS_TONE[status.state].pill
-                }`}
-              >
-                <span className="relative flex h-2.5 w-2.5">
-                  {status.state !== "closed" && (
-                    <span
-                      className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${STATUS_TONE[status.state].dot}`}
-                    />
-                  )}
-                  <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${STATUS_TONE[status.state].dot}`} />
-                </span>
-                {status.label}
-              </p>
-            )}
-          </div>
+          {status && (
+            <p
+              className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold ring-1 ${
+                STATUS_TONE[status.state].pill
+              }`}
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                {status.state !== "closed" && (
+                  <span
+                    className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${STATUS_TONE[status.state].dot}`}
+                  />
+                )}
+                <span
+                  className={`relative inline-flex h-2.5 w-2.5 rounded-full ${STATUS_TONE[status.state].dot}`}
+                />
+              </span>
+              {status.label}
+            </p>
+          )}
+        </div>
 
         {/* Curved transition into the light content */}
         <svg
@@ -288,7 +345,12 @@ export default function BookPage() {
             <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_360px]">
               {/* Interactive stepper */}
               <div className="rounded-3xl bg-white p-6 shadow-card md:p-8">
-                <Stepper step={step} setStep={setStep} date={date} time={time} />
+                <Stepper
+                  step={step}
+                  setStep={setStep}
+                  date={date}
+                  time={time}
+                />
 
                 <div className="mt-8 min-h-[320px]">
                   <AnimatePresence mode="wait">
@@ -310,12 +372,15 @@ export default function BookPage() {
                           onPick={setDate}
                         />
                       )}
-                      {step === 1 && <GuestStep guests={guests} setGuests={chooseGuests} />}
+                      {step === 1 && (
+                        <GuestStep guests={guests} setGuests={chooseGuests} />
+                      )}
                       {step === 2 && (
                         <TimeStep
                           time={time}
                           setTime={setTime}
                           booked={booked}
+                          tooSoon={tooSoon}
                           loading={loadingSlots}
                         />
                       )}
@@ -366,7 +431,9 @@ export default function BookPage() {
                 </div>
 
                 {error && (
-                  <p className="mt-4 text-center text-sm font-semibold text-red-600">{error}</p>
+                  <p className="mt-4 text-center text-sm font-semibold text-red-600">
+                    {error}
+                  </p>
                 )}
               </div>
 
@@ -443,7 +510,11 @@ function Stepper({ step, setStep, date, time }) {
 
 function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
   const sameDay = (a, b) =>
-    a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    a &&
+    b &&
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
   return (
     <div className="rounded-2xl bg-gradient-to-br from-rust/[0.07] via-rust/[0.03] to-transparent p-4 ring-1 ring-rust/10">
       {/* Month header */}
@@ -473,7 +544,10 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
       {/* Weekday labels */}
       <div className="mb-1 grid grid-cols-7 text-center">
         {WEEKDAYS.map((w, i) => (
-          <span key={i} className="py-1 text-xs font-bold uppercase text-rust/60">
+          <span
+            key={i}
+            className="py-1 text-xs font-bold uppercase text-rust/60"
+          >
             {w}
           </span>
         ))}
@@ -485,7 +559,9 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
           if (!d) return <span key={`e${i}`} />;
           const past = d < today;
           const closed = isClosedDay(d);
-          const blocked = past || closed;
+          // Inside the notice window: no slot on this date is far enough ahead.
+          const soon = !past && !closed && isDateTooSoon(d, ALL_SLOTS);
+          const blocked = past || closed || soon;
           const selected = sameDay(d, date);
           const isToday = sameDay(d, today);
           return (
@@ -500,7 +576,9 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
                 aria-label={
                   closed && !past
                     ? `${fmtDate(d)} — no reservations, walk-ins only`
-                    : fmtDate(d)
+                    : soon
+                      ? `${fmtDate(d)} — needs ${MIN_NOTICE_HOURS} hours' notice, please call us`
+                      : fmtDate(d)
                 }
                 className={`relative grid h-10 w-10 place-items-center rounded-full text-sm font-semibold transition-all duration-200 ${
                   selected
@@ -509,7 +587,9 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
                       ? "cursor-not-allowed text-muted/30"
                       : closed
                         ? "cursor-not-allowed text-muted/40 line-through decoration-muted/40"
-                        : "text-ink hover:scale-110 hover:bg-rust/10 hover:text-rust active:scale-95"
+                        : soon
+                          ? "cursor-not-allowed text-muted/40"
+                          : "text-ink hover:scale-110 hover:bg-rust/10 hover:text-rust active:scale-95"
                 } ${isToday && !selected ? "font-bold text-rust ring-2 ring-rust/40" : ""}`}
               >
                 {d.getDate()}
@@ -518,28 +598,59 @@ function DateStep({ view, cells, date, today, canPrevMonth, onShift, onPick }) {
                 )}
               </button>
 
-              {closed && !past && (
+              {(closed || soon) && !past && (
                 <span
                   role="tooltip"
                   className="pointer-events-none absolute -top-8 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
                 >
-                  No reservations
+                  {closed
+                    ? "No reservations"
+                    : `Needs ${MIN_NOTICE_HOURS}h notice`}
                 </span>
               )}
             </div>
           );
         })}
       </div>
+    </div>
+  );
+}
 
-      {/* Why some days are struck through. */}
-      <p className="mt-3 flex items-start gap-2 rounded-xl bg-rust/[0.06] px-3 py-2.5 text-xs leading-relaxed text-rust-light ring-1 ring-rust/10">
+/**
+ * The booking rules and the short-notice phone escape hatch. Lives above the
+ * summary card rather than under the calendar, so a guest reads the notice
+ * period before picking a date instead of after.
+ */
+function ReservationNotes() {
+  return (
+    <div className="mb-4 space-y-2">
+      <p className="flex items-start gap-2 rounded-xl bg-rust/[0.06] px-3 py-2.5 text-xs leading-relaxed text-rust-light ring-1 ring-rust/10">
         <FiInfo className="mt-0.5 shrink-0" size={14} />
         <span>
-          We don&apos;t take reservations on{" "}
-          <strong className="font-bold">{CLOSED_RESERVATION_LABEL}</strong> — those
-          evenings are walk-ins only, so just come by and we&apos;ll seat you.
+          Reservations need at least{" "}
+          <strong className="font-bold">
+            {MIN_NOTICE_HOURS} hours&apos; notice
+          </strong>{" "}
+          , and we don&apos;t take them on{" "}
+          <strong className="font-bold">{CLOSED_RESERVATION_LABEL}</strong> —
+          those evenings are walk-ins only.
         </span>
       </p>
+
+      {/* Same-day and short-notice guests get a phone number, not a dead end. */}
+      <a
+        href={CALL_HREF}
+        className="flex items-center gap-2 rounded-xl bg-rust px-3 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-rust-dark"
+      >
+        <FiPhone className="shrink-0" size={14} />
+        <span>
+          Looking for today or tomorrow? Call us on{" "}
+          <span className="font-bold underline decoration-white/40">
+            {BRAND.phone}
+          </span>{" "}
+          and we&apos;ll do our best to seat you.
+        </span>
+      </a>
     </div>
   );
 }
@@ -560,8 +671,12 @@ function GuestStep({ guests, setGuests }) {
           <FiMinus size={22} />
         </button>
         <div className="w-24 text-center">
-          <span className="font-display text-6xl font-bold text-rust">{guests}</span>
-          <p className="text-sm font-semibold text-muted">{guests === 1 ? "guest" : "guests"}</p>
+          <span className="font-display text-6xl font-bold text-rust">
+            {guests}
+          </span>
+          <p className="text-sm font-semibold text-muted">
+            {guests === 1 ? "guest" : "guests"}
+          </p>
         </div>
         <button
           type="button"
@@ -578,7 +693,9 @@ function GuestStep({ guests, setGuests }) {
         {Array.from({ length: Math.min(guests, 12) }).map((_, i) => (
           <FiUser key={i} className="text-rust" size={20} />
         ))}
-        {guests > 12 && <span className="text-sm font-bold text-rust">+{guests - 12}</span>}
+        {guests > 12 && (
+          <span className="text-sm font-bold text-rust">+{guests - 12}</span>
+        )}
       </div>
 
       {/* Quick picks */}
@@ -609,18 +726,22 @@ function GuestStep({ guests, setGuests }) {
   );
 }
 
-function Slot({ value, time, setTime, taken }) {
+function Slot({ value, time, setTime, taken, soon }) {
   const active = time === value;
+  const blocked = taken || soon;
+  const reason = soon ? `Needs ${MIN_NOTICE_HOURS}h notice` : "Already booked";
   return (
     <div className="group relative">
       <button
         type="button"
-        disabled={taken}
-        aria-label={taken ? `${value} — already booked` : value}
+        disabled={blocked}
+        aria-label={blocked ? `${value} — ${reason.toLowerCase()}` : value}
         onClick={() => setTime(value)}
         className={`w-full rounded-xl border py-2.5 text-sm font-semibold transition-all ${
-          taken
-            ? "cursor-not-allowed border-rust/10 bg-rust/[0.04] text-muted/40 line-through decoration-muted/40"
+          blocked
+            ? `cursor-not-allowed border-rust/10 bg-rust/[0.04] text-muted/40 ${
+                taken ? "line-through decoration-muted/40" : ""
+              }`
             : active
               ? "border-rust bg-rust text-white shadow-md"
               : "border-rust/25 bg-white text-ink hover:border-rust hover:bg-rust/5"
@@ -629,12 +750,12 @@ function Slot({ value, time, setTime, taken }) {
         {value}
       </button>
 
-      {taken && (
+      {blocked && (
         <span
           role="tooltip"
           className="pointer-events-none absolute -top-9 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2.5 py-1.5 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100"
         >
-          Already booked
+          {reason}
           <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-ink" />
         </span>
       )}
@@ -642,58 +763,106 @@ function Slot({ value, time, setTime, taken }) {
   );
 }
 
-function TimeStep({ time, setTime, booked, loading }) {
+function TimeStep({ time, setTime, booked, tooSoon, loading }) {
   const isTaken = (v) => booked.includes(v);
-  const allTaken = [...LUNCH, ...DINNER].every(isTaken);
+  const isSoon = (v) => !booked.includes(v) && tooSoon.includes(v);
+  const unavailable = (v) => isTaken(v) || isSoon(v);
+  const noneLeft = ALL_SLOTS.every(unavailable);
+  // Distinguish "fully booked" from "too close to now" — they need different advice.
+  const allSoon = noneLeft && ALL_SLOTS.every((v) => tooSoon.includes(v));
 
   return (
     <div>
       <p className="text-center text-muted">
         {loading
           ? "Checking which times are free…"
-          : allTaken
-            ? "Every slot is taken on this date."
-            : "Pick a time that suits you."}
+          : allSoon
+            ? `These times are inside our ${MIN_NOTICE_HOURS}-hour notice window.`
+            : noneLeft
+              ? "Every slot is taken on this date."
+              : "Pick a time that suits you."}
       </p>
 
-      {allTaken && !loading && (
-        <p className="mt-4 rounded-xl bg-rust/[0.06] px-3 py-2.5 text-center text-xs text-rust-light ring-1 ring-rust/10">
-          Please go back and choose another date — or call us and we&apos;ll do our best
-          to fit you in.
-        </p>
+      {noneLeft && !loading && (
+        <div className="mt-4 space-y-2">
+          <p className="rounded-xl bg-rust/[0.06] px-3 py-2.5 text-center text-xs text-rust-light ring-1 ring-rust/10">
+            {allSoon
+              ? "Please pick a later date — or call us and we'll do our best to seat you sooner."
+              : "Please go back and choose another date — or call us and we'll do our best to fit you in."}
+          </p>
+          <a
+            href={CALL_HREF}
+            className="flex items-center justify-center gap-2 rounded-xl bg-rust px-3 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-rust-dark"
+          >
+            <FiPhone size={14} />
+            Call {BRAND.phone}
+          </a>
+        </div>
       )}
 
-      <p className="mt-6 mb-2 text-sm font-bold uppercase tracking-wide text-rust-light">Lunch</p>
+      <p className="mt-6 mb-2 text-sm font-bold uppercase tracking-wide text-rust-light">
+        Lunch
+      </p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {LUNCH.map((v) => (
-          <Slot key={v} value={v} time={time} setTime={setTime} taken={isTaken(v)} />
+          <Slot
+            key={v}
+            value={v}
+            time={time}
+            setTime={setTime}
+            taken={isTaken(v)}
+            soon={isSoon(v)}
+          />
         ))}
       </div>
 
-      <p className="mb-2 mt-6 text-sm font-bold uppercase tracking-wide text-rust-light">Dinner</p>
+      <p className="mb-2 mt-6 text-sm font-bold uppercase tracking-wide text-rust-light">
+        Dinner
+      </p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {DINNER.map((v) => (
-          <Slot key={v} value={v} time={time} setTime={setTime} taken={isTaken(v)} />
+          <Slot
+            key={v}
+            value={v}
+            time={time}
+            setTime={setTime}
+            taken={isTaken(v)}
+            soon={isSoon(v)}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function DetailsStep({ name, setName, phone, setPhone, phoneValid, terms, setTerms }) {
+function DetailsStep({
+  name,
+  setName,
+  phone,
+  setPhone,
+  phoneValid,
+  terms,
+  setTerms,
+}) {
   const field =
     "w-full rounded-xl border border-rust/20 bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-muted/70 focus:border-rust focus:ring-2 focus:ring-rust/20";
   return (
     <div className="mx-auto max-w-md">
-      <p className="text-center text-muted">Almost there — who's the table for?</p>
-      <label className="mt-6 block text-sm font-semibold text-ink">Full name</label>
+      <p className="text-center text-muted">
+        Almost there — who's the table for?
+      </p>
+      <label className="mt-6 block text-sm font-semibold text-ink">
+        Full name
+      </label>
       <input
         className={`mt-1 ${field}`}
         placeholder="e.g. Ahmed Al-Sayed"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <label className="mt-4 block text-sm font-semibold text-ink">Phone number</label>
+      <label className="mt-4 block text-sm font-semibold text-ink">
+        Phone number
+      </label>
       <input
         type="tel"
         className={`mt-1 ${field}`}
@@ -702,7 +871,9 @@ function DetailsStep({ name, setName, phone, setPhone, phoneValid, terms, setTer
         onChange={(e) => setPhone(e.target.value)}
       />
       {phone && !phoneValid && (
-        <p className="mt-1 text-sm text-red-600">Please enter a valid phone number.</p>
+        <p className="mt-1 text-sm text-red-600">
+          Please enter a valid phone number.
+        </p>
       )}
 
       {/* Consent */}
@@ -722,16 +893,19 @@ function DetailsStep({ name, setName, phone, setPhone, phoneValid, terms, setTer
           How we use your data
         </summary>
         <p className="mt-2 leading-relaxed">
-          The restaurant where you are making a booking or click-and-collect request processes your
-          personal data to manage and follow up on your booking and the responses to it, including
-          any messages sent to you by email or SMS (such as confirmations and updates). This may be
-          done in collaboration with Mio Pizzeria, which provides tools for managing bookings and
-          orders. The restaurant may also use your data to manage your relationship overall and to
-          send updates or promotional messages by phone, email or SMS. You have the right to
-          access, correct, delete or transfer your data, and to limit or object to how it's used —
-          including objecting to direct marketing at any time without giving a reason. Where your
-          data is used based on consent, you may withdraw that consent at any time. For more
-          details, please refer to our privacy policy or contact the restaurant directly.
+          The restaurant where you are making a booking or click-and-collect
+          request processes your personal data to manage and follow up on your
+          booking and the responses to it, including any messages sent to you by
+          email or SMS (such as confirmations and updates). This may be done in
+          collaboration with Mio Pizzeria, which provides tools for managing
+          bookings and orders. The restaurant may also use your data to manage
+          your relationship overall and to send updates or promotional messages
+          by phone, email or SMS. You have the right to access, correct, delete
+          or transfer your data, and to limit or object to how it's used —
+          including objecting to direct marketing at any time without giving a
+          reason. Where your data is used based on consent, you may withdraw
+          that consent at any time. For more details, please refer to our
+          privacy policy or contact the restaurant directly.
         </p>
       </details>
 
@@ -745,7 +919,12 @@ function DetailsStep({ name, setName, phone, setPhone, phoneValid, terms, setTer
 function Ticket({ date, guests, guestsTouched, time, name, phone }) {
   // Only rows with real, user-chosen data — the ticket builds up as you go.
   const rows = [
-    date && { key: "date", Icon: FiCalendar, label: "Date", value: fmtDate(date) },
+    date && {
+      key: "date",
+      Icon: FiCalendar,
+      label: "Date",
+      value: fmtDate(date),
+    },
     guestsTouched && {
       key: "guests",
       Icon: FiUsers,
@@ -753,16 +932,30 @@ function Ticket({ date, guests, guestsTouched, time, name, phone }) {
       value: `${guests} ${guests === 1 ? "guest" : "guests"}`,
     },
     time && { key: "time", Icon: FiClock, label: "Time", value: time },
-    name.trim() && { key: "name", Icon: FiUser, label: "Name", value: name.trim() },
-    phone.trim() && { key: "phone", Icon: FiPhone, label: "Phone", value: phone.trim() },
+    name.trim() && {
+      key: "name",
+      Icon: FiUser,
+      label: "Name",
+      value: name.trim(),
+    },
+    phone.trim() && {
+      key: "phone",
+      Icon: FiPhone,
+      label: "Phone",
+      value: phone.trim(),
+    },
   ].filter(Boolean);
 
   return (
     <aside className="h-fit lg:sticky lg:top-28">
+      <ReservationNotes />
+
       <div className="overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-rust/10">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-rust to-rust-dark p-6">
-          <p className="font-display text-lg italic text-cream/80">Your reservation</p>
+          <p className="font-display text-lg italic text-cream/80">
+            Your reservation
+          </p>
           <p className="text-2xl font-bold text-white">Mio Pizzeria</p>
         </div>
 
@@ -780,7 +973,9 @@ function Ticket({ date, guests, guestsTouched, time, name, phone }) {
               <span className="grid h-14 w-14 place-items-center rounded-full bg-rust/10 text-rust">
                 <FiCalendar size={24} />
               </span>
-              <p className="mt-4 font-semibold text-ink">Nothing selected yet</p>
+              <p className="mt-4 font-semibold text-ink">
+                Nothing selected yet
+              </p>
               <p className="mt-1 text-sm text-muted">
                 Pick a date, party size and time — your summary appears here.
               </p>
@@ -802,8 +997,12 @@ function Ticket({ date, guests, guestsTouched, time, name, phone }) {
                       <r.Icon size={16} />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wide text-muted">{r.label}</p>
-                      <p className="truncate font-semibold text-ink">{r.value}</p>
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted">
+                        {r.label}
+                      </p>
+                      <p className="truncate font-semibold text-ink">
+                        {r.value}
+                      </p>
                     </div>
                   </motion.li>
                 ))}
@@ -828,9 +1027,10 @@ function SuccessCard({ date, guests, time, name, onReset }) {
       </span>
       <h2 className="mt-5 text-2xl font-bold text-ink">Request received!</h2>
       <p className="mt-2 text-muted">
-        Thanks{name ? `, ${name.split(" ")[0]}` : ""} — we've saved your reservation request.
-        Our team will confirm your table for {guests} {guests === 1 ? "guest" : "guests"} on{" "}
-        {date ? fmtDate(date) : ""} at {time} shortly.
+        Thanks{name ? `, ${name.split(" ")[0]}` : ""} — we've saved your
+        reservation request. Our team will confirm your table for {guests}{" "}
+        {guests === 1 ? "guest" : "guests"} on {date ? fmtDate(date) : ""} at{" "}
+        {time} shortly.
       </p>
       <button
         type="button"
