@@ -12,13 +12,13 @@ production. Grouped by file. Check each box as you complete it.
 
 | # | Item | Const | Current dummy value | How to change |
 |---|------|-------|---------------------|---------------|
-| [ ] | **WhatsApp number** | `WHATSAPP_NUMBER` | `97400000000` | Set the real business number, digits only, intl format (e.g. `974XXXXXXXX`). Used by the floating button + party-order form. |
+| [ ] | **WhatsApp number** | `WHATSAPP_NUMBER` | `97460064003` | Set the real business number, digits only, intl format (e.g. `974XXXXXXXX`). Used by the floating button + party-order form. |
 | [ ] | **Branch 1 & 2** | `BRANCHES` | West Bay / The Pearl, `+974 0000 0001/2`, dummy hours | Replace `name`, `address`, `phone`, `hours`, and `mapQuery` (a text query or `place_id:...`) for each of the 2 branches. `mapQuery` drives both the embedded map and the Directions link. |
 | [ ] | **Opening hours** | `HOURS` | Sun–Thu 11–23, etc. | Confirm real hours per day (shared by both branches unless you give each its own). |
 | [ ] | **Google reviews** | `GOOGLE_REVIEWS` | rating `4.8`, `320`, `placeid=REPLACE_ME`, 3 fake reviews | Put the real `rating`/`count`, and set `reviewUrl` + `placeUrl` using your Google **Place ID** (get it from Google's Place ID Finder). Optionally swap `items` for real quotes. |
 | [ ] | **Home offer** | `HOME_OFFER` | `image: /images/prod-3.jpg`, `href: /menu#gourmet` | Point `image` at the real promo image and `href` at the target menu section/item. |
 | [ ] | **Delivery platform links** | `DELIVERY_PLATFORMS` | generic homepages (`snoonu.com`, `talabat.com`, `rafeeq.qa`, `keeta.com`) | Replace each `url` with your **store page** on that platform, not the homepage. |
-| [ ] | **Social links** | `SOCIAL_LINKS` | `instagram.com`, `facebook.com`, `wa.me/9740000000` | Real handles. Add TikTok/Snapchat here if wanted (and to `Footer.jsx`). |
+| [ ] | **Social links** | `SOCIAL_LINKS` | `instagram.com`, `facebook.com`, `wa.me/97460064003` | Real handles. Add TikTok/Snapchat here if wanted (and to `Footer.jsx`). |
 | [ ] | **Brand contact** | `BRAND` | phone `+974 0000 0000`, `hello@miopizzeria.qa`, `Doha, Qatar` | Real phone, email, address. |
 | [ ] | **Full menu** | `MENU_CATEGORIES` | dummy items, prices, descriptions, `/images/prod-*.jpg` | Replace with the real menu (categories already include Gluten-Free, Breakfast, Sides, Desserts, Drinks, Combos). Set `bestSeller: true` on real best-sellers; images per item. |
 | [ ] | **Homepage testimonials** | `MOCK_TESTIMONIALS` | 4 fake reviews | Replace or remove (Google Reviews section now covers social proof). |

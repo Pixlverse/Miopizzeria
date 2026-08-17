@@ -24,7 +24,7 @@ export const NAV_LINKS = [
 ];
 
 // WhatsApp business number (digits only, international format). Dummy for now.
-export const WHATSAPP_NUMBER = "97400000000";
+export const WHATSAPP_NUMBER = "97460064003";
 
 // Table reservations are hidden until the client provides the real WhatsApp
 // booking number (bookings notify the restaurant over WhatsApp, so the flow is
@@ -84,7 +84,7 @@ export const DELIVERY_PLATFORMS = [
 export const SOCIAL_LINKS = {
   instagram: "https://instagram.com",
   facebook: "https://facebook.com",
-  whatsapp: "https://wa.me/9740000000",
+  whatsapp: "https://wa.me/97460064003",
   snapchat: "",
   tiktok: "",
 };
