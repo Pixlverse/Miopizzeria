@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FiMenu, FiX } from "react-icons/fi";
 import Logo from "./Logo";
-import { NAV_LINKS } from "@/utils/constants";
+import { BOOKING_ENABLED, NAV_LINKS } from "@/utils/constants";
 import { useI18n } from "@/context/LocaleContext";
 
 export default function Header() {
@@ -59,11 +59,13 @@ export default function Header() {
               </Link>
             </li>
           ))}
-          <li>
-            <Link href="/book" className="btn-outline px-5 py-2">
-              {t("nav.book")}
-            </Link>
-          </li>
+          {BOOKING_ENABLED && (
+            <li>
+              <Link href="/book" className="btn-outline px-5 py-2">
+                {t("nav.book")}
+              </Link>
+            </li>
+          )}
           <li>
             <button
               type="button"
@@ -102,11 +104,13 @@ export default function Header() {
               </Link>
             </li>
           ))}
-          <li>
-            <Link href="/book" className="btn-outline w-full">
-              {t("nav.book")}
-            </Link>
-          </li>
+          {BOOKING_ENABLED && (
+            <li>
+              <Link href="/book" className="btn-outline w-full">
+                {t("nav.book")}
+              </Link>
+            </li>
+          )}
           <li>
             <button
               type="button"

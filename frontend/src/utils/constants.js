@@ -26,6 +26,11 @@ export const NAV_LINKS = [
 // WhatsApp business number (digits only, international format). Dummy for now.
 export const WHATSAPP_NUMBER = "97400000000";
 
+// Table reservations are hidden until the client provides the real WhatsApp
+// booking number (bookings notify the restaurant over WhatsApp, so the flow is
+// incomplete without it). Flip to `true` to bring the Book button back.
+export const BOOKING_ENABLED = false;
+
 // ---- Reservation rules ----
 // Mirrors backend/config/reservations.js — keep the two in sync. The API
 // enforces these independently, so a stale copy here only affects the UI.
