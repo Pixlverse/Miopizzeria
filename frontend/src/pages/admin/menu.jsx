@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { FiPlus, FiEdit2, FiArchive, FiRotateCcw, FiX, FiStar } from "react-icons/fi";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FiPlus, FiEdit2, FiArchive, FiRotateCcw, FiX, FiStar, FiMapPin } from "react-icons/fi";
 import AdminLayout from "@/components/admin/AdminLayout";
 import ImageUploader from "@/components/admin/ImageUploader";
 import api from "@/utils/api";
 import { deleteImage } from "@/utils/upload";
+import { SHOPS, availableAt } from "@/utils/constants";
 
 const TAG_OPTIONS = ["Vegetarian", "Spicy", "New", "Gluten-Free"];
 // Sub-categories from the master menu sheet, stored as tags.
@@ -18,6 +19,21 @@ const SUBCAT_OPTIONS = [
   "Mini's",
   "Flats",
 ];
+const ALL_SHOP_IDS = SHOPS.map((s) => s.id);
+const shopById = Object.fromEntries(SHOPS.map((s) => [s.id, s]));
+
+// "Available at" choices in the item form — one shop only, or every shop.
+const AVAILABILITY_OPTIONS = [
+  ...SHOPS.map((s) => ({ value: s.id, label: `${s.name} only`, locations: [s.id] })),
+  { value: "both", label: "Both shops", locations: ALL_SHOP_IDS },
+];
+
+// Items with no `locations` predate shops and are sold everywhere.
+const itemLocations = (item) =>
+  Array.isArray(item?.locations) && item.locations.length ? item.locations : ALL_SHOP_IDS;
+const availabilityOf = (locations) =>
+  locations.length >= ALL_SHOP_IDS.length ? "both" : locations[0];
+
 const emptyForm = {
   name: "",
   nameAr: "",
@@ -31,6 +47,7 @@ const emptyForm = {
   imagePublicId: "",
   tags: [],
   bestSeller: false,
+  locations: ALL_SHOP_IDS,
   status: "Active",
 };
 
@@ -41,6 +58,7 @@ export default function AdminMenu() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [view, setView] = useState("active"); // "active" | "archived"
+  const [shopFilter, setShopFilter] = useState("all"); // "all" | shop id | "both"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -129,6 +147,7 @@ export default function AdminMenu() {
       imagePublicId: item.imagePublicId || "",
       tags: item.tags || [],
       bestSeller: !!item.bestSeller,
+      locations: itemLocations(item),
       status: item.status || "Active",
     });
     setOriginalPublicId(item.imagePublicId || "");
@@ -163,6 +182,7 @@ export default function AdminMenu() {
       imagePublicId: form.imagePublicId,
       tags: form.tags,
       bestSeller: form.bestSeller,
+      locations: form.locations,
       status: form.status,
     };
     try {
@@ -207,6 +227,32 @@ export default function AdminMenu() {
     }
   };
 
+  // A shop's filter shows its whole menu (its own items + shared ones);
+  // "both" narrows to the shared items only.
+  const shopFilters = useMemo(() => {
+    const count = (fn) => items.filter(fn).length;
+    return [
+      { value: "all", label: "All shops", count: items.length },
+      ...SHOPS.map((s) => ({
+        value: s.id,
+        label: s.name,
+        count: count((it) => availableAt(it, s.id)),
+      })),
+      {
+        value: "both",
+        label: "In both",
+        count: count((it) => itemLocations(it).length >= ALL_SHOP_IDS.length),
+      },
+    ];
+  }, [items]);
+
+  const shownItems = useMemo(() => {
+    if (shopFilter === "all") return items;
+    if (shopFilter === "both")
+      return items.filter((it) => itemLocations(it).length >= ALL_SHOP_IDS.length);
+    return items.filter((it) => availableAt(it, shopFilter));
+  }, [items, shopFilter]);
+
   return (
     <AdminLayout title="Menu">
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -248,7 +294,7 @@ export default function AdminMenu() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
-            {view === "archived" ? "Archived" : "Menu Items"} ({items.length})
+            {view === "archived" ? "Archived" : "Menu Items"} ({shownItems.length})
           </h2>
           <div className="flex rounded-full bg-slate-100 p-0.5">
             {["active", "archived"].map((v) => (
@@ -276,20 +322,55 @@ export default function AdminMenu() {
         )}
       </div>
 
+      {/* Shop filter */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <FiMapPin size={13} /> Shop
+        </span>
+        {shopFilters.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setShopFilter(f.value)}
+            aria-pressed={shopFilter === f.value}
+            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+              shopFilter === f.value
+                ? "bg-rust text-white shadow-sm"
+                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:text-rust hover:ring-rust/40"
+            }`}
+          >
+            {f.label}
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                shopFilter === f.value ? "bg-white/20" : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {f.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white p-16 text-slate-500">
           Loading…
         </div>
-      ) : items.length === 0 ? (
+      ) : shownItems.length === 0 ? (
         <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white p-16 text-center text-slate-500">
-          <p className="font-semibold text-slate-700">
-            {view === "archived" ? "No archived items" : "No menu items yet"}
-          </p>
-          <p className="mt-1 text-sm">
-            {view === "archived"
-              ? "Items you archive will appear here and can be restored."
-              : "Add a category, then create your first item."}
-          </p>
+          {items.length > 0 ? (
+            <p className="font-semibold text-slate-700">No items match this shop filter</p>
+          ) : (
+            <>
+              <p className="font-semibold text-slate-700">
+                {view === "archived" ? "No archived items" : "No menu items yet"}
+              </p>
+              <p className="mt-1 text-sm">
+                {view === "archived"
+                  ? "Items you archive will appear here and can be restored."
+                  : "Add a category, then create your first item."}
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -298,13 +379,14 @@ export default function AdminMenu() {
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Shops</th>
                 <th className="px-4 py-3">Price</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {items.map((it) => (
+              {shownItems.map((it) => (
                 <tr key={it._id} className="hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-semibold text-slate-800">
                     <span className="flex items-center gap-2">
@@ -316,6 +398,22 @@ export default function AdminMenu() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{it.category}</td>
+                  <td className="px-4 py-3">
+                    {itemLocations(it).length >= ALL_SHOP_IDS.length ? (
+                      <span className="rounded-full bg-rust/10 px-2.5 py-1 text-xs font-bold text-rust">Both</span>
+                    ) : (
+                      <span className="flex flex-wrap gap-1">
+                        {itemLocations(it).map((id) => (
+                          <span
+                            key={id}
+                            className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700"
+                          >
+                            {shopById[id]?.short || id}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-semibold text-rust">QAR {it.price}</td>
                   <td className="px-4 py-3">
                     <span
@@ -428,6 +526,30 @@ export default function AdminMenu() {
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Available at</label>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {AVAILABILITY_OPTIONS.map((opt) => {
+                    const selected = availabilityOf(form.locations) === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, locations: opt.locations }))}
+                        aria-pressed={selected}
+                        className={`rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                          selected
+                            ? "border-rust bg-rust/10 text-rust"
+                            : "border-slate-300 text-slate-600 hover:border-rust/50"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

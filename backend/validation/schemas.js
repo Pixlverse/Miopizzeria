@@ -6,6 +6,7 @@ const {
   closedDaysLabel,
   isTooSoon,
 } = require("../config/reservations");
+const { SHOP_IDS } = require("../config/shops");
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -25,6 +26,12 @@ const menuItemSchema = z.object({
   imagePublicId: z.string().max(300).optional().default(""),
   tags: z.array(z.string().max(30)).optional().default([]),
   bestSeller: z.boolean().optional().default(false),
+  locations: z
+    .array(z.enum(SHOP_IDS))
+    .min(1, "Pick at least one shop.")
+    .transform((l) => [...new Set(l)])
+    .optional()
+    .default([...SHOP_IDS]),
   status: z.enum(["Active", "Inactive"]).optional().default("Active"),
   order: z.coerce.number().optional().default(0),
 });

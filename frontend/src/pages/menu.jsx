@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FiGrid } from "react-icons/fi";
+import { FiGrid, FiMapPin, FiRepeat } from "react-icons/fi";
 import { FaPizzaSlice, FaMugHot, FaConciergeBell, FaLeaf, FaIceCream } from "react-icons/fa";
 import { GiSandwich, GiCoffeeCup, GiSodaCan } from "react-icons/gi";
 import Layout from "@/components/Layout";
 import MenuCard from "@/components/MenuCard";
 import SectionBackdrop from "@/components/SectionBackdrop";
+import ShopPicker from "@/components/ShopPicker";
+import { SHOPS, availableAt } from "@/utils/constants";
 import api from "@/utils/api";
 import { useI18n } from "@/context/LocaleContext";
 
@@ -34,8 +36,12 @@ function catIcon(name) {
 }
 
 export default function MenuPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
+  // Each shop has its own menu, so nothing is listed until one is chosen —
+  // either via /menu?shop=<id> (shareable) or the picker that opens otherwise.
+  const [shop, setShop] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [active, setActive] = useState("all");
@@ -64,6 +70,36 @@ export default function MenuPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!router.isReady) return;
+    const fromUrl = SHOPS.find((s) => s.id === router.query.shop);
+    if (fromUrl) setShop(fromUrl.id);
+    else setPickerOpen(true);
+    // Only on arrival — later changes come from the picker itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady]);
+
+  const chooseShop = useCallback(
+    (id) => {
+      setShop(id);
+      setPickerOpen(false);
+      // Keep the choice in the URL so a refresh or a shared link lands on it.
+      router.replace(
+        { pathname: router.pathname, query: { ...router.query, shop: id } },
+        undefined,
+        { shallow: true, scroll: false },
+      );
+    },
+    [router],
+  );
+  const closePicker = useCallback(() => setPickerOpen(false), []);
+
+  const currentShop = SHOPS.find((s) => s.id === shop);
+  const shopItems = useMemo(
+    () => (shop ? items.filter((it) => availableAt(it, shop)) : []),
+    [items, shop],
+  );
+
   // Pre-select a category when arriving via /menu?cat=<name> (case-insensitive).
   useEffect(() => {
     const { cat } = router.query;
@@ -75,13 +111,20 @@ export default function MenuPage() {
     if (match) setActive(match.name);
   }, [router.query, categories]);
 
-  const filters = useMemo(
-    () => [
+  // Only offer categories this shop actually has items in.
+  const filters = useMemo(() => {
+    const present = new Set(shopItems.map((it) => it.category));
+    return [
       { name: "all", label: t("menu.all") },
-      ...categories.map((c) => ({ name: c.name, label: c.name })),
-    ],
-    [categories, t],
-  );
+      ...categories.filter((c) => present.has(c.name)).map((c) => ({ name: c.name, label: c.name })),
+    ];
+  }, [categories, shopItems, t]);
+
+  // Switching shop can leave the selected category empty — fall back to All.
+  useEffect(() => {
+    if (loading || !shop || active === "all") return;
+    if (!shopItems.some((it) => it.category === active)) setActive("all");
+  }, [active, shopItems, loading, shop]);
 
   // Category display order comes from the admin (GET /categories is sorted by
   // its `order` field), so the menu follows it without a hardcoded list here.
@@ -99,13 +142,13 @@ export default function MenuPage() {
   // Array.sort is stable, so each item's admin `order` survives within its
   // category. Unlisted categories fall to the end, alphabetically.
   const visible = useMemo(() => {
-    if (active !== "all") return items.filter((it) => it.category === active);
-    return [...items].sort(
+    if (active !== "all") return shopItems.filter((it) => it.category === active);
+    return [...shopItems].sort(
       (a, b) =>
         rank(a.category) - rank(b.category) ||
         String(a.category || "").localeCompare(String(b.category || "")),
     );
-  }, [active, items, rank]);
+  }, [active, shopItems, rank]);
 
   // Split the heading so the first word is white and the rest is the accent italic.
   const heading = t("menu.title");
@@ -113,6 +156,9 @@ export default function MenuPage() {
 
   return (
     <Layout title={t("nav.menu")}>
+      {/* Fills <main>'s min-h-screen so a short menu (empty state, or before a
+          shop is picked) doesn't leave white body showing above the footer. */}
+      <div className="flex min-h-screen flex-col">
       {/* Full-bleed food hero — copy on the left, the spread on the right */}
       <section className="relative flex min-h-[52vh] items-center overflow-hidden bg-[#5E2A20] pt-24">
         <Image
@@ -155,6 +201,31 @@ export default function MenuPage() {
             <p className="mt-3 font-display text-xl italic text-cream/90 sm:text-2xl">
               {t("menu.subtitle")}
             </p>
+
+            {currentShop && (
+              <div className="mt-6 inline-flex max-w-full items-center gap-3 rounded-full bg-white/10 p-1.5 pe-2 ring-1 ring-white/20 backdrop-blur-md">
+                <span className="relative hidden h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-cream/70 sm:block">
+                  <Image src={currentShop.image} alt="" fill sizes="40px" className="scale-[1.6] object-cover" />
+                </span>
+                <span className="min-w-0 ps-2 text-start leading-tight sm:ps-0">
+                  <span className="block whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-cream/70 sm:text-[11px]">
+                    {t("menu.viewingShop")}
+                  </span>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-white">
+                    <FiMapPin size={13} className="shrink-0" />
+                    {locale === "ar" ? currentShop.nameAr : currentShop.name}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="ms-1 inline-flex shrink-0 items-center gap-1.5 rounded-full bg-cream px-3.5 py-2 text-xs font-bold text-rust transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cream"
+                >
+                  <FiRepeat size={13} />
+                  {t("menu.changeShop")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -169,7 +240,7 @@ export default function MenuPage() {
       </section>
 
       {/* Light content — filter + cards */}
-      <section className="relative overflow-hidden pb-20 pt-8">
+      <section className="relative flex-1 overflow-hidden pb-20 pt-8">
         <SectionBackdrop />
         <div
           aria-hidden="true"
@@ -211,13 +282,15 @@ export default function MenuPage() {
           )}
 
           {/* Cards / states */}
-          {loading ? (
+          {loading || !shop ? (
             <div className="mt-16 grid place-items-center text-muted">
               <span className="h-10 w-10 animate-spin rounded-full border-2 border-rust/30 border-t-rust" />
               <p className="mt-4 text-sm font-medium">{t("menu.loading")}</p>
             </div>
           ) : visible.length === 0 ? (
-            <p className="mt-16 text-center text-muted">{t("menu.empty")}</p>
+            <p className="mt-16 text-center text-muted">
+              {shopItems.length === 0 ? t("menu.shopEmpty") : t("menu.empty")}
+            </p>
           ) : (
             <div className={`mt-10 ${GRID}`}>
               {visible.map((item, i) => (
@@ -227,6 +300,15 @@ export default function MenuPage() {
           )}
         </div>
       </section>
+      </div>
+
+      <ShopPicker
+        open={pickerOpen}
+        current={shop}
+        onSelect={chooseShop}
+        // First visit: a shop must be picked. Afterwards it can be dismissed.
+        onClose={shop ? closePicker : undefined}
+      />
     </Layout>
   );
 }

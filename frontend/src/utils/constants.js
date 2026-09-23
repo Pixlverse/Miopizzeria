@@ -23,6 +23,36 @@ export const NAV_LINKS = [
   { key: "contact", label: "Contact", href: "/contact" },
 ];
 
+// The shops the menu is split by. `id` is what's stored on each menu item
+// (`locations`) — mirrors backend/config/shops.js, keep the two in sync.
+export const SHOPS = [
+  {
+    id: "westbay",
+    name: "Dafna Park, Westbay",
+    nameAr: "حديقة الدفنة، الخليج الغربي",
+    short: "Westbay",
+    kind: "Pizzeria",
+    kindAr: "المطعم",
+    image: "/images/shop-westbay.jpg",
+  },
+  {
+    id: "wakrah",
+    name: "Al Wakrah Sports Complex",
+    nameAr: "مجمع الوكرة الرياضي",
+    short: "Al Wakrah",
+    kind: "Food Truck",
+    kindAr: "عربة الطعام",
+    image: "/images/shop-foodtruck.jpg",
+  },
+];
+
+// Whether a menu item is sold at a shop. Items saved before shops existed
+// carry no `locations` and are available everywhere.
+export function availableAt(item, shopId) {
+  const locs = item?.locations;
+  return !Array.isArray(locs) || locs.length === 0 || locs.includes(shopId);
+}
+
 // WhatsApp business number (digits only, international format). Dummy for now.
 export const WHATSAPP_NUMBER = "97460064003";
 
@@ -82,8 +112,8 @@ export const DELIVERY_PLATFORMS = [
 ];
 
 export const SOCIAL_LINKS = {
-  instagram: "https://instagram.com",
-  facebook: "https://facebook.com",
+  instagram: "https://www.instagram.com/miopizzeria.qtr/",
+  facebook: "https://www.facebook.com/profile.php?id=61573588365166",
   whatsapp: "https://wa.me/97460064003",
   snapchat: "",
   tiktok: "",

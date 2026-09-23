@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { SHOP_IDS } = require("../config/shops");
 
 const menuItemSchema = new mongoose.Schema(
   {
@@ -18,6 +19,12 @@ const menuItemSchema = new mongoose.Schema(
     imagePublicId: { type: String, default: "" },
     tags: [{ type: String, trim: true }],
     bestSeller: { type: Boolean, default: false },
+    // Which shops sell this item. Items saved before shops existed have no
+    // value here and are treated as available at every shop.
+    locations: {
+      type: [{ type: String, enum: SHOP_IDS }],
+      default: () => [...SHOP_IDS],
+    },
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
     archived: { type: Boolean, default: false },
     order: { type: Number, default: 0 },

@@ -20,7 +20,6 @@ export default function Layout({ children, title, description }) {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={desc} />
         <meta name="robots" content="index, follow" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
       <main className="min-h-screen">{children}</main>

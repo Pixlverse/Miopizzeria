@@ -29,6 +29,17 @@ const en = {
     all: "All",
     loading: "Loading menu…",
     empty: "No items in this category yet.",
+    shopEmpty: "Nothing on this shop's menu yet.",
+    viewingShop: "Showing the menu for",
+    changeShop: "Change shop",
+  },
+  shopPicker: {
+    eyebrow: "Two homes, one oven",
+    title: "Which Mio are you visiting?",
+    lead: "Each shop has its own menu — pick one to see what's cooking there.",
+    cta: "See this menu",
+    hint: "You can switch shops anytime.",
+    close: "Close",
   },
   about: {
     eyebrow: "Premium Italian pizza, made in Doha",

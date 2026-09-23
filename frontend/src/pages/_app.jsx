@@ -31,12 +31,16 @@ export default function App({ Component, pageProps }) {
     let timer;
     let startedAt = 0;
 
-    const onStart = (url) => {
+    // Shallow changes only rewrite the query on the same page (e.g. the menu's
+    // ?shop=), so they don't get the loader or count as a page view.
+    const onStart = (url, { shallow } = {}) => {
+      if (shallow) return;
       if (typeof url === "string" && url.startsWith("/admin")) return;
       startedAt = Date.now();
       setLoading(true);
     };
-    const onDone = (url) => {
+    const onDone = (url, { shallow } = {}) => {
+      if (shallow) return;
       pageview(url);
       const elapsed = Date.now() - startedAt;
       timer = setTimeout(

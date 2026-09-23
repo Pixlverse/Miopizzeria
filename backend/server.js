@@ -7,7 +7,13 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+// CORS_ORIGIN may list several origins, comma-separated (e.g. the site's
+// www and bare domains, or a couple of local ports).
+const corsOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(cors({ origin: corsOrigins.length ? corsOrigins : "*" }));
 app.use(express.json({ limit: "1mb" }));
 
 // Health check
